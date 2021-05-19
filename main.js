@@ -1,0 +1,8 @@
+'use strict';
+
+var obsidian = require('obsidian');
+
+class plugin extends obsidian.Plugin {}
+
+module.exports = plugin;
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoibWFpbi5qcyIsInNvdXJjZXMiOlsic3JjL3BsdWdpbi5qcyJdLCJzb3VyY2VzQ29udGVudCI6WyJpbXBvcnQge1BsdWdpbn0gZnJvbSBcIm9ic2lkaWFuXCI7XG5cbmV4cG9ydCBkZWZhdWx0IGNsYXNzIGV4dGVuZHMgUGx1Z2luIHt9Il0sIm5hbWVzIjpbIlBsdWdpbiJdLCJtYXBwaW5ncyI6Ijs7OztBQUVlLFlBQUssU0FBU0EsZUFBTSxDQUFDOzs7OyJ9

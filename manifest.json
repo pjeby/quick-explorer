@@ -1,0 +1,8 @@
+{
+  "id": "unnamed-plugin",
+  "name": "Edit this",
+  "version": "0.0.1",
+  "description": "description here",
+  "minAppVersion": "0.12.3",
+  "isDesktopOnly": false
+}

@@ -1,0 +1,14 @@
+{
+    "scripts": {
+        "dev": "rollup --config rollup.config.js -w",
+        "build": "rollup --config rollup.config.js"
+    },
+    "license": "ISC",
+    "devDependencies": {
+        "monkey-around": "^2.1",
+        "obsidian": "^0.12",
+        "obsidian-rollup-presets": "github:pjeby/obsidian-rollup-presets",
+        "rollup": "^2.38.1",
+        "typescript": "4.1.3"
+    }
+}
