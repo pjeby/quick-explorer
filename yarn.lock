@@ -1951,13 +1951,13 @@ fsevents@~2.3.1:
   languageName: node
   linkType: hard
 
-"obsidian@npm:^0.12":
-  version: 0.12.2
-  resolution: "obsidian@npm:0.12.2"
+"obsidian@npm:^0.12.5":
+  version: 0.12.5
+  resolution: "obsidian@npm:0.12.5"
   dependencies:
     "@types/codemirror": 0.0.108
     moment: 2.29.1
-  checksum: af9399b761e72fc22e400612b5df1e28316e02272bfdfb9b7f7a55ff2bb70d1336a9257645fbe63275fe4488f63780719c5e49fe273deead230f0cfd5c393162
+  checksum: ef21efea3bbd2b43408536eb8c806485c0648fd57349803159ec549b26c5ed3a8bc84310ef5689642f32ee0e8c6566a2a73f562dd3448129fea7f2a5b2c2f51b
   languageName: node
   linkType: hard
 
@@ -2667,7 +2667,7 @@ fsevents@~2.3.1:
   dependencies:
     "@rollup/plugin-typescript": ^8
     monkey-around: ^2.1
-    obsidian: ^0.12
+    obsidian: ^0.12.5
     obsidian-rollup-presets: "github:pjeby/obsidian-rollup-presets"
     redom: ^3.27.1
     rollup: ^2.38.1

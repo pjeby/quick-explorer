@@ -39,7 +39,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageDependencies": [
             ["@rollup/plugin-typescript", "virtual:dc3fc578bfa5e06182a4d2be39ede0bc5b74940b1ffe0d70c26892ab140a4699787750fba175dc306292e80b4aa2c8c5f68c2a821e69b2c37e360c0dff36ff66#npm:8.2.1"],
             ["monkey-around", "npm:2.1.0"],
-            ["obsidian", "npm:0.12.2"],
+            ["obsidian", "npm:0.12.5"],
             ["obsidian-rollup-presets", "virtual:dc3fc578bfa5e06182a4d2be39ede0bc5b74940b1ffe0d70c26892ab140a4699787750fba175dc306292e80b4aa2c8c5f68c2a821e69b2c37e360c0dff36ff66#https://github.com/pjeby/obsidian-rollup-presets.git#commit=f5c11cda6adcc0489d9de9ff651175bcca4123fe"],
             ["redom", "npm:3.27.1"],
             ["rollup", "npm:2.48.0"],
@@ -2305,10 +2305,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]
       ]],
       ["obsidian", [
-        ["npm:0.12.2", {
-          "packageLocation": "./.yarn/cache/obsidian-npm-0.12.2-4e7a7f78e4-af9399b761.zip/node_modules/obsidian/",
+        ["npm:0.12.5", {
+          "packageLocation": "./.yarn/cache/obsidian-npm-0.12.5-c857be7d2e-ef21efea3b.zip/node_modules/obsidian/",
           "packageDependencies": [
-            ["obsidian", "npm:0.12.2"],
+            ["obsidian", "npm:0.12.5"],
             ["@types/codemirror", "npm:0.0.108"],
             ["moment", "npm:2.29.1"]
           ],
@@ -3184,7 +3184,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["root-workspace-0b6124", "workspace:."],
             ["@rollup/plugin-typescript", "virtual:dc3fc578bfa5e06182a4d2be39ede0bc5b74940b1ffe0d70c26892ab140a4699787750fba175dc306292e80b4aa2c8c5f68c2a821e69b2c37e360c0dff36ff66#npm:8.2.1"],
             ["monkey-around", "npm:2.1.0"],
-            ["obsidian", "npm:0.12.2"],
+            ["obsidian", "npm:0.12.5"],
             ["obsidian-rollup-presets", "virtual:dc3fc578bfa5e06182a4d2be39ede0bc5b74940b1ffe0d70c26892ab140a4699787750fba175dc306292e80b4aa2c8c5f68c2a821e69b2c37e360c0dff36ff66#https://github.com/pjeby/obsidian-rollup-presets.git#commit=f5c11cda6adcc0489d9de9ff651175bcca4123fe"],
             ["redom", "npm:3.27.1"],
             ["rollup", "npm:2.48.0"],

@@ -3,6 +3,8 @@ import {el, list, mount, setAttr, unmount} from "redom";
 import "./redom-jsx";
 import "./styles.css"
 
+const hoverSource = "quick-explorer:folder-menu";
+
 export default class extends Plugin {
     statusbarItem: HTMLElement
     explorer: Explorer
@@ -15,6 +17,13 @@ export default class extends Plugin {
         this.registerEvent(this.app.workspace.on("file-open", this.explorer.update, this.explorer));
         this.registerEvent(this.app.vault.on("rename", this.onFileChange, this));
         this.registerEvent(this.app.vault.on("delete", this.onFileChange, this));
+        (this.app.workspace as any).registerHoverLinkSource(hoverSource, {
+            display: 'Quick Explorer', defaultMod: true
+        });
+    }
+
+    onunload() {
+        (this.app.workspace as any).unregisterHoverLinkSource(hoverSource);
     }
 
     onFileChange(file: TAbstractFile) {
@@ -95,6 +104,11 @@ class Explorer {
             }
         }, true);
 
+        dom.style.setProperty(
+            // Allow popovers (hover preview) to overlay this menu
+            "--layer-menu", "" + (parseInt(getComputedStyle(document.body).getPropertyValue("--layer-popover")) - 1)
+        );
+
         dom.on("contextmenu", ".menu-item[data-file-path]", (event, target) => {
             const {filePath} = target.dataset;
             const file = this.app.vault.getAbstractFileByPath(filePath);
@@ -104,6 +118,14 @@ class Explorer {
                 event.stopPropagation();  // Keep current menu tree open
             }
         })
+
+        dom.on('mouseover', ".menu-item[data-file-path]", (event, targetEl) => {
+            const {filePath} = targetEl.dataset;
+            const file = this.app.vault.getAbstractFileByPath(filePath);
+            if (file instanceof TFile) this.app.workspace.trigger('hover-link', {
+                event, source: hoverSource, hoverParent: dom, targetEl, linktext: filePath
+            });
+        });
 
         return menu;
     }
