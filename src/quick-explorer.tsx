@@ -46,27 +46,65 @@ class Explorer {
         this.el.on("click", ".explorable", (event, target) => {
             const {parentPath, filePath} = target.dataset;
             const folder = this.app.vault.getAbstractFileByPath(parentPath);
-            const file = this.app.vault.getAbstractFileByPath(filePath);
-            this.showItemMenu(this.folderMenuFor(folder as TFolder, file), target);
+            const selected = this.app.vault.getAbstractFileByPath(filePath);
+            this.showItemMenu(this.folderMenuFor(folder as TFolder, selected), target);
         });
         this.el.on('dragstart', ".explorable", (event, target) => {
             const {filePath} = target.dataset;
             if (filePath === "/") return;
-            const file = this.app.vault.getAbstractFileByPath(filePath);
+            const me = this.app.vault.getAbstractFileByPath(filePath);
             const dragManager = (this.app as any).dragManager;
-            const dragData = file instanceof TFile ? dragManager.dragFile(event, file) : dragManager.dragFolder(event, file);
+            const dragData = me instanceof TFile ? dragManager.dragFile(event, me) : dragManager.dragFolder(event, me);
             dragManager.onDragStart(event, dragData);
         });
     }
 
-    folderMenuFor(folder: TFolder, file: TAbstractFile) {
+    folderMenuFor(folder: TFolder, selected?: TAbstractFile) {
         const menu = new Menu(this.app);
-        for(const child of folder.children) {
+        function addItem(child: TAbstractFile) {
             menu.addItem(i => {
-                i.setTitle(child.name).setIcon(child instanceof TFolder ? "folder" : "document")
-                if (child===file) i.dom.addClass("is-active");
+                const {dom} = i as any as {dom: HTMLElement};
+                setAttr(dom, {draggable: true, dataset: {filePath: child.path}});
+                i.setTitle(child === folder.parent ? ".." : child.name).setIcon(child instanceof TFolder ? "folder" : "document")
+                if (child===selected) dom.addClass("is-active");
             });
         }
+
+        const folders = folder.children.filter(f => f instanceof TFolder);
+        const files   = folder.children.filter(f => f instanceof TFile  ); // && valid type
+        if (folder.parent) folders.unshift(folder.parent);
+        folders.map(addItem);
+        if (folders.length && files.length) menu.addSeparator();
+        files.map(addItem);
+
+        const {dom} = menu as any as {dom: HTMLElement};
+
+        dom.on("click", ".menu-item[data-file-path]", (event, target) => {
+            const {filePath} = target.dataset;
+            const file = this.app.vault.getAbstractFileByPath(filePath);
+            if (file) {
+                if (file instanceof TFile) {
+                    this.app.workspace.openLinkText(file.path, "");
+                    return
+                }
+                const folderMenu = this.folderMenuFor(file as TFolder);
+                folderMenu.showAtPosition({x: event.clientX, y: event.clientY});
+                event.stopPropagation();  // Keep current menu tree open
+                event.preventDefault();
+                return false;
+            }
+        }, true);
+
+        dom.on("contextmenu", ".menu-item[data-file-path]", (event, target) => {
+            const {filePath} = target.dataset;
+            const file = this.app.vault.getAbstractFileByPath(filePath);
+            if (file) {
+                const ctxMenu = this.contextMenuFor(file);
+                ctxMenu.showAtPosition({x: event.clientX, y: event.clientY});
+                event.stopPropagation();  // Keep current menu tree open
+            }
+        })
+
         return menu;
     }
 
@@ -82,12 +120,13 @@ class Explorer {
         menu.addItem(i => i.setTitle("Rename").setIcon("pencil"));
         menu.addItem(i => i.setTitle("Delete").setIcon("trash"));
         if (file === workspace.getActiveFile()) {
-            workspace.trigger("file-menu", menu, file, "quick-explorer");
-        } else {
             workspace.trigger("file-menu", menu, file, "quick-explorer", workspace.activeLeaf);
+        } else {
+            workspace.trigger("file-menu", menu, file, "quick-explorer");
         }
         return menu;
     }
+
     showItemMenu(menu: Menu, target: HTMLElement) {
         // Highlight the item whose menu is active, and turn it off when the menu closes
         menu.onHide(() => target.toggleClass("is-active", false));
