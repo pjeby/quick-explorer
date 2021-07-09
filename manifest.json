@@ -4,5 +4,5 @@
   "version": "0.0.1",
   "description": "Perform file explorer operations (and see your current file path) from the status bar",
   "minAppVersion": "0.12.5",
-  "isDesktopOnly": false
+  "isDesktopOnly": true
 }
