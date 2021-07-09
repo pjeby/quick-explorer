@@ -1,0 +1,14 @@
+.status-bar-item.plugin-quick-explorer .explorable:not(:last-child)::after {
+    content: " » ";
+    background-color: var(--background-secondary);
+    color: var(--text-muted);
+}
+
+.status-bar-item.plugin-quick-explorer .explorable { cursor: pointer; }
+
+.status-bar-item.plugin-quick-explorer .explorable.is-active {
+    background-color: var(--interactive-accent-hover);
+    color: var(--text-on-accent);
+}
+
+.menu-item.is-active:not(:hover) { background-color: var(--background-secondary-alt); }

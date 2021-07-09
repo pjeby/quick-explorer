@@ -5,10 +5,13 @@
     },
     "license": "ISC",
     "devDependencies": {
+        "@rollup/plugin-typescript": "^8",
         "monkey-around": "^2.1",
         "obsidian": "^0.12",
         "obsidian-rollup-presets": "github:pjeby/obsidian-rollup-presets",
+        "redom": "^3.27.1",
         "rollup": "^2.38.1",
+        "tslib": "^2.3.0",
         "typescript": "4.1.3"
     }
 }
