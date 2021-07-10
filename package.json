@@ -6,6 +6,7 @@
     "license": "ISC",
     "devDependencies": {
         "@rollup/plugin-typescript": "^8",
+        "i18next": "^20.3.2",
         "monkey-around": "^2.1",
         "node-sass": "^6.0.1",
         "obsidian": "^0.12.5",

@@ -1,5 +1,10 @@
 import { TAbstractFile, TFolder } from "obsidian";
 import { PopupMenu, MenuParent } from "./menus";
+import {i18n} from "i18next";
+
+declare global {
+    const i18next: i18n
+}
 
 export class ContextMenu extends PopupMenu {
     constructor(parent: MenuParent, file: TAbstractFile) {
