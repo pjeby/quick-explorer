@@ -7,6 +7,7 @@
     "devDependencies": {
         "@rollup/plugin-typescript": "^8",
         "monkey-around": "^2.1",
+        "node-sass": "^6.0.1",
         "obsidian": "^0.12.5",
         "obsidian-rollup-presets": "github:pjeby/obsidian-rollup-presets",
         "redom": "^3.27.1",

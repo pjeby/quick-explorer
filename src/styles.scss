@@ -1,0 +1,44 @@
+#quick-explorer {
+    display: inline-block;
+    padding-left: 10px;
+    padding-right: 10px;
+
+    // Ensure we overlay the main title text if the window's too narrow
+    z-index: var(--layer-cover);
+    background-color: var(--background-modifier-cover);
+
+    .explorable {
+        font-size: 12px;
+        opacity: 0.75;
+        cursor: pointer;
+        padding: 0;
+
+        &.is-active, &:hover {
+            background-color: var(--interactive-accent-hover);
+            color: var(--text-on-accent);
+            opacity: 1;
+        }
+    }
+}
+
+.menu-item {
+    &.is-active:not(:hover) {
+        background-color: var(--background-secondary-alt);
+    }
+
+    // Expand the title so the extension tag will be right-aligned
+    .menu-item-title { flex-grow: 1; }
+
+    .nav-file-tag {
+        margin-top: 5px;     // visually centered vertically
+        margin-left: 1.5em;  // minimum distance from title
+        opacity: 0.4;        // prevent distraction
+        background-color: transparent;
+    }
+
+    &:hover, &.is-active {
+        .nav-file-tag {
+            opacity: 1;     // make it more visible for the current item
+        }
+    }
+}
