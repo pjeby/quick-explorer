@@ -11,6 +11,10 @@ declare module "obsidian" {
             getTypeByExtension(ext: string): string
         }
     }
+    interface Vault {
+        getConfig(option: string): any
+        getConfig(option:"showUnsupportedFiles"): boolean
+    }
 }
 
 const alphaSort = new Intl.Collator(undefined, {usage: "sort", sensitivity: "base", numeric: true}).compare;
@@ -24,7 +28,7 @@ const previewIcons: Record<string, string> = {
 
 const viewtypeIcons: Record<string, string> = {
     ...previewIcons,
-    // ass third-party plugins
+    // add third-party plugins
     excalidraw: "excalidraw-icon",
 };
 
@@ -62,10 +66,11 @@ export class FolderMenu extends PopupMenu {
     }
 
     loadFiles(folder: TFolder) {
+        const allFiles = this.app.vault.getConfig("showUnsupportedFiles");
         const {children, parent} = folder;
         const items = children.slice().sort((a: TAbstractFile, b: TAbstractFile) => alphaSort(a.name, b.name))
         const folders = items.filter(f => f instanceof TFolder) as TFolder[];
-        const files   = items.filter(f => f instanceof TFile) as TFile[];   // XXX && (allFiles || fileIcon(f))
+        const files   = items.filter(f => f instanceof TFile && (allFiles || fileIcon(this.app, f))) as TFile[];
         folders.sort((a, b) => alphaSort(a.name, b.name));
         files.sort((a, b) => alphaSort(a.basename, b.basename));
         if (parent) folders.unshift(parent);

@@ -1,7 +1,7 @@
 {
   "id": "quick-explorer",
   "name": "Quick Explorer",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Perform file explorer operations (and see your current file path) from the title bar",
   "minAppVersion": "0.12.10",
   "isDesktopOnly": true
