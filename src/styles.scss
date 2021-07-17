@@ -22,6 +22,7 @@
 }
 
 .menu-item {
+    display: flex;
     &.is-active:not(:hover) {
         background-color: var(--background-secondary-alt);
     }

@@ -13,6 +13,8 @@ declare module "obsidian" {
     }
 }
 
+const alphaSort = new Intl.Collator(undefined, {usage: "sort", sensitivity: "base", numeric: true}).compare;
+
 const previewIcons: Record<string, string> = {
     markdown: "document",
     image: "image-file",
@@ -61,9 +63,11 @@ export class FolderMenu extends PopupMenu {
 
     loadFiles(folder: TFolder) {
         const {children, parent} = folder;
-        // XXX sort children by name
-        const folders = children.filter(f => f instanceof TFolder);
-        const files   = children.filter(f => f instanceof TFile);   // XXX && (allFiles || fileIcon(f))
+        const items = children.slice().sort((a: TAbstractFile, b: TAbstractFile) => alphaSort(a.name, b.name))
+        const folders = items.filter(f => f instanceof TFolder) as TFolder[];
+        const files   = items.filter(f => f instanceof TFile) as TFile[];   // XXX && (allFiles || fileIcon(f))
+        folders.sort((a, b) => alphaSort(a.name, b.name));
+        files.sort((a, b) => alphaSort(a.basename, b.basename));
         if (parent) folders.unshift(parent);
         folders.map(this.addFile, this);
         if (folders.length && files.length) this.addSeparator();

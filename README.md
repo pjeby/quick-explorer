@@ -15,7 +15,7 @@ This plugin is still in early development, so it's only available via git checko
 
 ### Current Limitations
 
-* Files may not be correctly sorted by locale yet
+* Files are always sorted in ascending name order (using the same collation rules as the file-explorer view)
 * All files are shown, regardless of the filter setting used in "Files and Links"
 * You can drag things *out of* the dropdowns, but you can't drop anything *into* them
 * Accessing context menus may be difficult when opening folders that are too big to fit on the screen and require scrolling
