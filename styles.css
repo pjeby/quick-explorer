@@ -9,14 +9,14 @@
     opacity: 0.75;
     cursor: pointer;
     padding: 0; }
-    #quick-explorer .explorable.is-active, #quick-explorer .explorable:hover {
+    #quick-explorer .explorable.selected, #quick-explorer .explorable:hover {
       background-color: var(--interactive-accent-hover);
       color: var(--text-on-accent);
       opacity: 1; }
 
 .menu-item {
   display: flex; }
-  .menu-item.is-active:not(:hover) {
+  .menu-item.selected:not(:hover) {
     background-color: var(--background-secondary-alt); }
   .menu-item .menu-item-title {
     flex-grow: 1; }
@@ -25,5 +25,5 @@
     margin-left: 1.5em;
     opacity: 0.4;
     background-color: transparent; }
-  .menu-item:hover .nav-file-tag, .menu-item.is-active .nav-file-tag {
+  .menu-item:hover .nav-file-tag, .menu-item.selected .nav-file-tag {
     opacity: 1; }

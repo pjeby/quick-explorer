@@ -1,4 +1,4 @@
-import {Menu, App} from "obsidian";
+import {Menu, App, MenuItem} from "obsidian";
 import {around} from "monkey-around";
 
 declare module "obsidian" {
@@ -6,9 +6,18 @@ declare module "obsidian" {
         app: App
         dom: HTMLDivElement
         scope: Scope
+        items: MenuItem[]
+
+        // 0.12.12+
+        select?(n: number): void
+        selected: number
+        onArrowDown?(e: KeyboardEvent): false
+        onArrowUp(e: KeyboardEvent): false
     }
+
     interface MenuItem {
         dom: HTMLDivElement
+        handleEvent(event: Event): void
     }
 }
 
@@ -18,12 +27,17 @@ export class PopupMenu extends Menu {
     /** The child menu popped up over this one */
     child: Menu
 
-    constructor(protected parent: MenuParent) {
+    constructor(public parent: MenuParent) {
         super(parent instanceof App ? parent : parent.app);
         if (parent instanceof PopupMenu) parent.setChildMenu(this);
 
         // Escape to close the menu
         this.scope.register(null, "Escape", this.hide.bind(this));
+        // 0.12.12+
+        if (Menu.prototype.select) {
+            this.scope.register(null, "Home", this.onHome.bind(this));
+            this.scope.register(null, "End",  this.onEnd.bind(this));
+        }
 
         // Make obsidian.Menu think mousedowns on our child menu(s) are happening
         // on us, so we won't close before an actual click occurs
@@ -39,6 +53,39 @@ export class PopupMenu extends Menu {
         super.onload();
     }
 
+    onEnter(event: KeyboardEvent) {
+        const item = this.items[this.selected];
+        if (item) {
+            item.handleEvent(event);
+            // Only hide if we don't have a submenu
+            if (!this.child) this.hide();
+        }
+        return false;
+    }
+
+    select(n: number) {
+        if (!Menu.prototype.select) return;  // <0.12.12
+        super.select(n);
+        this.items[this.selected].dom.scrollIntoView()
+    }
+
+    unselect() {
+        this.items[this.selected]?.dom.removeClass("selected");
+    }
+
+    onEnd(e: KeyboardEvent) {
+        this.unselect();
+        this.selected = this.items.length;
+        this.onArrowUp(e);
+        if (this.selected === this.items.length) this.selected = -1;
+    }
+
+    onHome(e: KeyboardEvent) {
+        this.unselect();
+        this.selected = -1;
+        this.onArrowDown(e);
+    }
+
     hide() {
         this.setChildMenu();  // hide child menu(s) first
         return super.hide();
@@ -47,6 +94,10 @@ export class PopupMenu extends Menu {
     setChildMenu(menu?: Menu) {
         this.child?.hide();
         this.child = menu;
+    }
+
+    rootMenu(): PopupMenu {
+        return this.parent instanceof App ? this : this.parent.rootMenu();
     }
 
     cascade(target: HTMLElement, event?: MouseEvent,  hOverlap = 15, vOverlap = 5) {
@@ -82,8 +133,8 @@ export class PopupMenu extends Menu {
         this.showAtPosition(point);
 
         // Flag the clicked item as active, until we close
-        target.toggleClass("is-active", true);
-        this.onHide(() => target.toggleClass("is-active", false));
+        target.toggleClass("selected", true);
+        if (this.parent instanceof App || !Menu.prototype.select) this.onHide(() => target.toggleClass("selected", false));
         return this;
     }
 }

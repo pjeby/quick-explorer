@@ -1,4 +1,4 @@
-import { TAbstractFile, TFile, TFolder, Keymap, Notice, App } from "obsidian";
+import { TAbstractFile, TFile, TFolder, Keymap, Notice, App, Menu } from "obsidian";
 import { hoverSource, startDrag } from "./Explorer";
 import { PopupMenu, MenuParent } from "./menus";
 import { ContextMenu } from "./ContextMenu";
@@ -46,7 +46,7 @@ export class FolderMenu extends PopupMenu {
     parentFolder: TFolder = this.parent instanceof FolderMenu ? this.parent.folder : null;
     lastOver: HTMLElement = null;
 
-    constructor(public parent: MenuParent, public folder: TFolder, public selected?: TAbstractFile) {
+    constructor(public parent: MenuParent, public folder: TFolder, public selectedFile?: TAbstractFile) {
         super(parent);
         this.loadFiles(folder);
 
@@ -90,7 +90,11 @@ export class FolderMenu extends PopupMenu {
                 i.setTitle(file.basename);
                 if (file.extension !== "md") i.dom.createDiv({text: file.extension, cls: "nav-file-tag"});
             }
-            if (file === this.selected) i.dom.addClass("is-active");
+            i.onClick(e => this.onClickFile(file, i.dom))
+            if (file === this.selectedFile) {
+                i.dom.addClass("selected"); // < 0.12.12
+                this.select(this.items.length-1);
+            }
         });
     }
 
@@ -114,11 +118,21 @@ export class FolderMenu extends PopupMenu {
         const file = this.app.vault.getAbstractFileByPath(filePath);
         this.lastOver = target;
         if (!file) return;
+        if (!this.onClickFile(file, target)) {
+            // Keep current menu tree open
+            event.stopPropagation();
+            event.preventDefault();
+            return false;
+        }
+    }
 
+    onClickFile(file: TAbstractFile, target: HTMLDivElement, event?: MouseEvent) {
         if (file instanceof TFile) {
             if (this.app.viewRegistry.isExtensionRegistered(file.extension)) {
-                this.app.workspace.openLinkText(file.path, "", Keymap.isModifier(event, "Mod"));
-                return;
+                this.app.workspace.openLinkText(file.path, "", event && Keymap.isModifier(event, "Mod"));
+                // Close the entire menu tree
+                this.rootMenu().hide();
+                return true;
             } else {
                 new Notice(`.${file.extension} files cannot be opened in Obsidian; Use "Open in Default App" to open them externally`);
                 // fall through
@@ -129,11 +143,6 @@ export class FolderMenu extends PopupMenu {
             const folderMenu = new FolderMenu(this, file as TFolder, this.folder);
             folderMenu.cascade(target, event);
         }
-
-        // Keep current menu tree open
-        event.stopPropagation();
-        event.preventDefault();
-        return false;
     }
 
     onItemMenu = (event: MouseEvent, target: HTMLDivElement) => {
