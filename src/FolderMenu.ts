@@ -48,6 +48,7 @@ export class FolderMenu extends PopupMenu {
     constructor(public parent: MenuParent, public folder: TFolder, public selectedFile?: TAbstractFile, public opener?: HTMLElement) {
         super(parent);
         this.loadFiles(folder);
+        if (Menu.prototype.select) this.scope.register(["Mod"], "Enter", this.onEnter.bind(this));
 
         const { dom } = this;
         dom.style.setProperty(
@@ -114,7 +115,7 @@ export class FolderMenu extends PopupMenu {
                 i.setTitle(file.basename);
                 if (file.extension !== "md") i.dom.createDiv({text: file.extension, cls: "nav-file-tag"});
             }
-            i.onClick(e => this.onClickFile(file, i.dom))
+            i.onClick(e => this.onClickFile(file, i.dom, e))
             if (file === this.selectedFile) {
                 i.dom.addClass("selected"); // < 0.12.12
                 this.select(this.items.length-1);
