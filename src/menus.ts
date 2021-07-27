@@ -1,4 +1,4 @@
-import {Menu, App, MenuItem} from "obsidian";
+import {Menu, App, MenuItem, debounce, Keymap} from "obsidian";
 import {around} from "monkey-around";
 
 declare module "obsidian" {
@@ -15,9 +15,15 @@ declare module "obsidian" {
         onArrowUp(e: KeyboardEvent): false
     }
 
+    export const Keymap: {
+        isModifier(event: Event, modifier: string): boolean
+        getModifiers(event: Event): string
+    }
+
     interface MenuItem {
         dom: HTMLDivElement
         handleEvent(event: Event): void
+        disabled: boolean
     }
 }
 
@@ -26,6 +32,9 @@ export type MenuParent = App | PopupMenu;
 export class PopupMenu extends Menu {
     /** The child menu popped up over this one */
     child: Menu
+
+    match: string = ""
+    resetSearchOnTimeout = debounce(() => {this.match = "";}, 1500, true)
 
     constructor(public parent: MenuParent) {
         super(parent instanceof App ? parent : parent.app);
@@ -49,8 +58,40 @@ export class PopupMenu extends Menu {
     }
 
     onload() {
-        this.scope.register(null, null, () => false); // block all keys other than ours
+        this.scope.register(null, null, this.onKeyDown.bind(this));
         super.onload();
+    }
+
+    onKeyDown(event: KeyboardEvent) {
+        if (event.key.length === 1 && !Keymap.getModifiers(event)) {
+            let match = this.match + event.key;
+            // Throw away pieces of the match until something matches or nothing's left
+            while (match && !this.searchFor(match)) match = match.substr(1);
+            this.match = match;
+            this.resetSearchOnTimeout();
+        }
+        return false;   // block all keys other than ours
+    }
+
+    searchFor(match: string) {
+        const parts = match.split("").map(escapeRegex);
+        return (
+            this.find(new RegExp("^"+ parts.join(""), "ui")) ||
+            this.find(new RegExp("^"+ parts.join(".*"), "ui")) ||
+            this.find(new RegExp(parts.join(".*"), "ui"))
+        );
+    }
+
+    find(pattern: RegExp) {
+        let pos = Math.min(0, this.selected);
+        for (let i=this.items.length; i; ++pos, i--) {
+            if (this.items[pos].disabled) continue;
+            if (this.items[pos].dom.textContent.match(pattern)) {
+                this.select(pos);
+                return true;
+            }
+        }
+        return false
     }
 
     onEnter(event: KeyboardEvent) {
@@ -64,6 +105,7 @@ export class PopupMenu extends Menu {
     }
 
     select(n: number) {
+        this.match = "" // reset search on move
         if (!Menu.prototype.select) return;  // <0.12.12
         super.select(n);
         this.items[this.selected].dom.scrollIntoView()
@@ -137,4 +179,8 @@ export class PopupMenu extends Menu {
         if (this.parent instanceof App || !Menu.prototype.select) this.onHide(() => target.toggleClass("selected", false));
         return this;
     }
+}
+
+function escapeRegex(s: string) {
+    return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }

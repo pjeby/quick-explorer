@@ -4,7 +4,6 @@ import { PopupMenu, MenuParent } from "./menus";
 import { ContextMenu } from "./ContextMenu";
 
 declare module "obsidian" {
-    export const Keymap: any
     interface App {
         viewRegistry: {
             isExtensionRegistered(ext: string): boolean
