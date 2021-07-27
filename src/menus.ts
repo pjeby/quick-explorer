@@ -42,10 +42,13 @@ export class PopupMenu extends Menu {
 
         // Escape to close the menu
         this.scope.register(null, "Escape", this.hide.bind(this));
+        this.scope.register([], "ArrowLeft", this.onArrowLeft.bind(this));
+
         // 0.12.12+
         if (Menu.prototype.select) {
             this.scope.register(null, "Home", this.onHome.bind(this));
             this.scope.register(null, "End",  this.onEnd.bind(this));
+            this.scope.register([], "ArrowRight", this.onArrowRight.bind(this));
         }
 
         // Make obsidian.Menu think mousedowns on our child menu(s) are happening
@@ -126,6 +129,18 @@ export class PopupMenu extends Menu {
         this.unselect();
         this.selected = -1;
         this.onArrowDown(e);
+    }
+
+    onArrowLeft(): boolean | undefined {
+        if (this.rootMenu() !== this) {
+            this.hide();
+            return false;
+        }
+    }
+
+    onArrowRight(): boolean | undefined {
+        // no-op in base class
+        return;
     }
 
     hide() {

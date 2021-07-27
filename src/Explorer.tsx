@@ -48,7 +48,7 @@ export class Explorer {
             const { parentPath, filePath } = target.dataset;
             const folder = app.vault.getAbstractFileByPath(parentPath);
             const selected = app.vault.getAbstractFileByPath(filePath);
-            new FolderMenu(app, folder as TFolder, selected).cascade(target, event.isTrusted && event);
+            new FolderMenu(app, folder as TFolder, selected, target).cascade(target, event.isTrusted && event);
         });
         this.el.on('dragstart', ".explorable", (event, target) => {
             startDrag(app, target.dataset.filePath, event);

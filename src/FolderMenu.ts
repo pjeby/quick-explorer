@@ -45,7 +45,7 @@ export class FolderMenu extends PopupMenu {
     parentFolder: TFolder = this.parent instanceof FolderMenu ? this.parent.folder : null;
     lastOver: HTMLElement = null;
 
-    constructor(public parent: MenuParent, public folder: TFolder, public selectedFile?: TAbstractFile) {
+    constructor(public parent: MenuParent, public folder: TFolder, public selectedFile?: TAbstractFile, public opener?: HTMLElement) {
         super(parent);
         this.loadFiles(folder);
 
@@ -59,9 +59,34 @@ export class FolderMenu extends PopupMenu {
         dom.on("click",       menuItem, this.onItemClick, true);
         dom.on("contextmenu", menuItem, this.onItemMenu );
         dom.on('mouseover'  , menuItem, this.onItemHover);
+        dom.on("mousedown",   menuItem, e => {e.stopPropagation()}, true);  // Fix drag cancelling
         dom.on('dragstart',   menuItem, (event, target) => {
             startDrag(this.app, target.dataset.filePath, event);
         });
+    }
+
+    onArrowLeft(): boolean | undefined {
+        return super.onArrowLeft() ?? this.openBreadcrumb(this.opener?.previousElementSibling);
+    }
+
+    openBreadcrumb(element: Element) {
+        if (element && this.rootMenu() === this) {
+            const prevExplorable = this.opener.previousElementSibling;
+            this.hide();
+            (element as HTMLDivElement).click()
+            return false;
+        }
+    }
+
+    onArrowRight(): boolean | undefined {
+        const targetEl = this.items[this.selected]?.dom;
+        const { filePath } = targetEl?.dataset;
+        const file = filePath && this.app.vault.getAbstractFileByPath(filePath);
+        if (file instanceof TFolder && file !== this.selectedFile) {
+            this.onClickFile(file, targetEl);
+            return false;
+        }
+        return this.openBreadcrumb(this.opener?.nextElementSibling);
     }
 
     loadFiles(folder: TFolder) {
@@ -125,7 +150,7 @@ export class FolderMenu extends PopupMenu {
         }
     }
 
-    onClickFile(file: TAbstractFile, target: HTMLDivElement, event?: MouseEvent) {
+    onClickFile(file: TAbstractFile, target: HTMLDivElement, event?: MouseEvent|KeyboardEvent) {
         if (file instanceof TFile) {
             if (this.app.viewRegistry.isExtensionRegistered(file.extension)) {
                 this.app.workspace.openLinkText(file.path, "", event && Keymap.isModifier(event, "Mod"));
@@ -137,10 +162,18 @@ export class FolderMenu extends PopupMenu {
                 // fall through
             }
         } else if (file === this.parentFolder) {
+            // We're a child menu and selected "..": just return to previous menu
             this.hide();
+        } else if (file === this.folder.parent) {
+            // Not a child menu, but selected "..": go to previous breadcrumb
+            this.onArrowLeft();
+        } else if (file === this.selectedFile) {
+            // Targeting the initially-selected subfolder: go to next breadcrumb
+            this.openBreadcrumb(this.opener?.nextElementSibling);
         } else {
+            // Otherwise, pop a new menu for the subfolder
             const folderMenu = new FolderMenu(this, file as TFolder, this.folder);
-            folderMenu.cascade(target, event);
+            folderMenu.cascade(target, event instanceof MouseEvent ? event : undefined);
         }
     }
 
