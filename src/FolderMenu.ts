@@ -48,7 +48,10 @@ export class FolderMenu extends PopupMenu {
     constructor(public parent: MenuParent, public folder: TFolder, public selectedFile?: TAbstractFile, public opener?: HTMLElement) {
         super(parent);
         this.loadFiles(folder);
-        if (Menu.prototype.select) this.scope.register(["Mod"], "Enter", this.onEnter.bind(this));
+        if (Menu.prototype.select) {
+            this.scope.register(["Mod"], "Enter", this.onEnter.bind(this));
+            this.scope.register(["Alt"], "Enter", this.onEnter.bind(this));
+        }
 
         const { dom } = this;
         dom.style.setProperty(
@@ -143,7 +146,7 @@ export class FolderMenu extends PopupMenu {
         const file = this.app.vault.getAbstractFileByPath(filePath);
         this.lastOver = target;
         if (!file) return;
-        if (!this.onClickFile(file, target)) {
+        if (!this.onClickFile(file, target, event)) {
             // Keep current menu tree open
             event.stopPropagation();
             event.preventDefault();
@@ -152,6 +155,11 @@ export class FolderMenu extends PopupMenu {
     }
 
     onClickFile(file: TAbstractFile, target: HTMLDivElement, event?: MouseEvent|KeyboardEvent) {
+        if (event instanceof KeyboardEvent && event.key === "Enter" && Keymap.getModifiers(event) === "Alt") {
+            // Open context menu w/Alt-Enter
+            new ContextMenu(this, file).cascade(target);
+            return
+        }
         if (file instanceof TFile) {
             if (this.app.viewRegistry.isExtensionRegistered(file.extension)) {
                 this.app.workspace.openLinkText(file.path, "", event && Keymap.isModifier(event, "Mod"));
