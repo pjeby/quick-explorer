@@ -16,7 +16,13 @@ Quick explorer also includes two hotkeyable commands:
 * **Browse vault**, which opens a menu for the vault root, and
 * **Browse current folder**, which opens a menu for the active file's containing folder
 
-(These will probably be a lot more useful once Obsidian menus are keyboard-accessible)
+With Obsidian 0.12.12 and above, keyboard navigation is also supported within the menus:
+
+* Typing normal text searches item names within the folder and selects the next matching folder or file
+* Up, Down, Home, and End move within a folder
+* Left and Right arrows select parent or child folders
+* Enter selects an item to open, Ctrl-or-Cmd + Enter opens a file in a new pane
+* Alt + Enter opens a context menu for the selected file or folder
 
 ### Installation
 
