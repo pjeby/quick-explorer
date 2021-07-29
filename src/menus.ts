@@ -66,7 +66,8 @@ export class PopupMenu extends Menu {
     }
 
     onKeyDown(event: KeyboardEvent) {
-        if (event.key.length === 1 && !Keymap.getModifiers(event)) {
+        const mod = Keymap.getModifiers(event);
+        if (event.key.length === 1 && !event.isComposing && (!mod || mod === "Shift") ) {
             let match = this.match + event.key;
             // Throw away pieces of the match until something matches or nothing's left
             while (match && !this.searchFor(match)) match = match.substr(1);
