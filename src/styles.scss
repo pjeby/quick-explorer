@@ -21,10 +21,13 @@
     }
 }
 
-.menu-item {
+.qe-popup-menu .menu-item {
     display: flex;
-    &.selected:not(:hover) {
+    &.selected {
         background-color: var(--background-secondary-alt);
+    }
+    &:hover:not(.selected) {
+        background-color: var(--background-primary);
     }
 
     // Expand the title so the extension tag will be right-aligned

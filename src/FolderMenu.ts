@@ -202,9 +202,9 @@ export class FolderMenu extends PopupMenu {
         return super.hide();
     }
 
-    select(idx: number) {
+    select(idx: number, scroll = true) {
         const old = this.selected;
-        super.select(idx);
+        super.select(idx, scroll);
         if (old !== this.selected) {
             // selected item changed; trigger new popover or hide the old one
             if (autoPreview) this.showPopover(); else this.hidePopover();

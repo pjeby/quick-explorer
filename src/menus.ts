@@ -10,7 +10,7 @@ declare module "obsidian" {
 
         select(n: number): void
         selected: number
-        onArrowDown?(e: KeyboardEvent): false
+        onArrowDown(e: KeyboardEvent): false
         onArrowUp(e: KeyboardEvent): false
     }
 
@@ -55,17 +55,32 @@ export class PopupMenu extends Menu {
             const ret = prev.call(this, target) || menu.child?.dom.contains(target);
             return ret;
         }}});
+        this.dom.addClass("qe-popup-menu");
     }
 
     onload() {
         this.scope.register(null, null, this.onKeyDown.bind(this));
         super.onload();
         this.visible = true;
+        // We wait until now to register so that any initial mouseover of the old mouse position will be skipped
+        this.register(onElement(this.dom, "mouseover", ".menu-item", (event: MouseEvent, target: HTMLDivElement) => {
+            if (mouseMoved(event) && !target.hasClass("is-disabled")) {
+                this.select(this.items.findIndex(i => i.dom === target), false);
+            }
+        }));
     }
 
     onunload() {
         this.visible = false;
         super.onunload();
+    }
+
+    // Override to avoid having a mouseover event handler
+    addItem(cb: (i: MenuItem) => any) {
+        const i = new MenuItem(this);
+        this.items.push(i);
+        cb(i);
+        return this;
     }
 
     onKeyDown(event: KeyboardEvent) {
@@ -111,10 +126,14 @@ export class PopupMenu extends Menu {
         return false;
     }
 
-    select(n: number) {
+    select(n: number, scroll = true) {
         this.match = "" // reset search on move
         super.select(n);
-        this.items[this.selected].dom.scrollIntoView()
+        if (scroll)  {
+            const el = this.items[this.selected].dom;
+            const me = this.dom.getBoundingClientRect(), my = el.getBoundingClientRect();
+            if (my.top < me.top || my.bottom > me.bottom) el.scrollIntoView();
+        }
     }
 
     unselect() {
@@ -190,6 +209,7 @@ export class PopupMenu extends Menu {
         }
 
         // Done!  Show our work.
+        if (event instanceof MouseEvent) mouseMoved(event);
         this.showAtPosition(point);
 
         // Flag the clicked item as active, until we close
@@ -204,4 +224,24 @@ export class PopupMenu extends Menu {
 
 function escapeRegex(s: string) {
     return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+let oldX = 0, oldY = 0
+
+function mouseMoved({clientX, clientY}: {clientX: number, clientY: number}) {
+    if ( Math.abs(oldX-clientX) || Math.abs(oldY-clientY) ) {
+        oldX = clientX;
+        oldY = clientY;
+        return true;
+    }
+    return false;
+}
+
+function onElement<K extends keyof HTMLElementEventMap>(
+    el: HTMLElement, type: K, selector:string,
+    listener: (this: HTMLElement, ev: HTMLElementEventMap[K], delegateTarget: HTMLElement) => any,
+    options: boolean | AddEventListenerOptions = false
+) {
+    el.on(type, selector, listener, options)
+    return () => el.off(type, selector, listener, options);
 }
