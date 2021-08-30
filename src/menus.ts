@@ -192,7 +192,10 @@ export class PopupMenu extends Menu {
 
         // Flag the clicked item as active, until we close
         target.toggleClass("selected", true);
-        if (this.parent instanceof App || !Menu.prototype.select) this.onHide(() => target.toggleClass("selected", false));
+        this.onHide(() => {
+            if (this.parent instanceof App) target.toggleClass("selected", false);
+            else if (this.parent instanceof PopupMenu) this.parent.setChildMenu();
+        });
         return this;
     }
 }
