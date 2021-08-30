@@ -25,5 +25,7 @@
     margin-left: 1.5em;
     opacity: 0.4;
     background-color: transparent; }
-  .menu-item:hover .nav-file-tag, .menu-item.selected .nav-file-tag {
-    opacity: 1; }
+  .menu-item:hover, .menu-item.selected {
+    color: var(--text-normal); }
+    .menu-item:hover .nav-file-tag, .menu-item.selected .nav-file-tag {
+      opacity: 1; }

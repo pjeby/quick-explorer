@@ -38,6 +38,7 @@
     }
 
     &:hover, &.selected {
+        color: var(--text-normal);
         .nav-file-tag {
             opacity: 1;     // make it more visible for the current item
         }
