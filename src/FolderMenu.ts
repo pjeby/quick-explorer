@@ -1,9 +1,13 @@
-import { TAbstractFile, TFile, TFolder, Keymap, Notice, App, Menu } from "obsidian";
+import { TAbstractFile, TFile, TFolder, Keymap, Notice, App, Menu, HoverParent, debounce } from "obsidian";
 import { hoverSource, startDrag } from "./Explorer";
 import { PopupMenu, MenuParent } from "./menus";
 import { ContextMenu } from "./ContextMenu";
 
 declare module "obsidian" {
+    interface HoverPopover {
+        hide(): void
+        hoverEl: HTMLDivElement
+    }
     interface App {
         viewRegistry: {
             isExtensionRegistered(ext: string): boolean
@@ -40,6 +44,9 @@ function fileIcon(app: App, file: TAbstractFile) {
     }
 }
 
+// Global auto preview mode
+let autoPreview = false
+
 export class FolderMenu extends PopupMenu {
 
     parentFolder: TFolder = this.parent instanceof FolderMenu ? this.parent.folder : null;
@@ -48,10 +55,9 @@ export class FolderMenu extends PopupMenu {
     constructor(public parent: MenuParent, public folder: TFolder, public selectedFile?: TAbstractFile, public opener?: HTMLElement) {
         super(parent);
         this.loadFiles(folder);
-        if (Menu.prototype.select) {
-            this.scope.register(["Mod"], "Enter", this.onEnter.bind(this));
-            this.scope.register(["Alt"], "Enter", this.onEnter.bind(this));
-        }
+        this.scope.register([],      "Tab",   this.togglePreviewMode.bind(this));
+        this.scope.register(["Mod"], "Enter", this.onEnter.bind(this));
+        this.scope.register(["Alt"], "Enter", this.onEnter.bind(this));
 
         const { dom } = this;
         dom.style.setProperty(
@@ -67,6 +73,9 @@ export class FolderMenu extends PopupMenu {
         dom.on('dragstart',   menuItem, (event, target) => {
             startDrag(this.app, target.dataset.filePath, event);
         });
+
+        // When we unload, reactivate parent menu's hover, if needed
+        this.register(() => { autoPreview && this.parent instanceof FolderMenu && this.parent.showPopover(); })
     }
 
     onArrowLeft(): boolean | undefined {
@@ -120,24 +129,91 @@ export class FolderMenu extends PopupMenu {
             }
             i.onClick(e => this.onClickFile(file, i.dom, e))
             if (file === this.selectedFile) {
-                i.dom.addClass("selected"); // < 0.12.12
                 this.select(this.items.length-1);
             }
         });
     }
 
+    togglePreviewMode() {
+        if (autoPreview = !autoPreview) this.showPopover(); else this.hidePopover();
+    }
+
+    onload() {
+        super.onload();
+        // Activate preview immediately if applicable
+        if (autoPreview && this.selected != -1) this.showPopover();
+    }
+
+    hide() {
+        this.hidePopover();
+        return super.hide();
+    }
+
+    select(idx: number) {
+        const old = this.selected;
+        super.select(idx);
+        if (old !== this.selected) {
+            // selected item changed; trigger new popover or hide the old one
+            if (autoPreview) this.showPopover(); else this.hidePopover();
+        }
+    }
+
+    hidePopover() {
+        this.hoverPopover?.hide();
+    }
+
+    canShowPopover() {
+        return !this.child && this.visible;
+    }
+
+    showPopover = debounce(() => {
+        this.hidePopover();
+        if (!autoPreview) return;
+        this.maybeHover(this.items[this.selected]?.dom, file => this.app.workspace.trigger('link-hover', this, null, file.path, ""));
+    }, 50, true)
+
     onItemHover = (event: MouseEvent, targetEl: HTMLDivElement) => {
-        const { filePath } = targetEl.dataset;
-        const file = this.app.vault.getAbstractFileByPath(filePath);
-        if (!file) return;
-        if (targetEl != this.lastOver) {
-            this.setChildMenu();  // close submenu
-            this.lastOver = targetEl;
+        if (!autoPreview) this.maybeHover(targetEl, file => this.app.workspace.trigger('hover-link', {
+            event, source: hoverSource, hoverParent: this, targetEl, linktext: file.path
+        }));
+    }
+
+    maybeHover(targetEl: HTMLDivElement, cb: (file: TFile) => void) {
+        if (!this.canShowPopover()) return;
+        const { filePath } = targetEl?.dataset;
+        let file = filePath && this.app.vault.getAbstractFileByPath(filePath);
+        if (file instanceof TFolder) {
+            file = this.app.vault.getAbstractFileByPath(filePath+"/"+file.name+".md");
         }
         if (file instanceof TFile && previewIcons[this.app.viewRegistry.getTypeByExtension(file.extension)]) {
-            this.app.workspace.trigger('hover-link', {
-                event, source: hoverSource, hoverParent: this.dom, targetEl, linktext: filePath
-            });
+            cb(file)
+        };
+    }
+
+
+    _popover: HoverParent["hoverPopover"];
+
+    get hoverPopover() { return this._popover; }
+
+    set hoverPopover(popover) {
+        if (popover && !this.canShowPopover()) { popover.hide(); return; }
+        this._popover = popover;
+        if (autoPreview && popover) {
+            // Position the popover so it doesn't overlap the menu horizontally (as long as it fits)
+            // and so that its vertical position overlaps the selected menu item (placing the top a
+            // bit above the current item, unless it would go off the bottom of the screen)
+            const hoverEl = popover.hoverEl;
+            hoverEl.show();
+            const
+                menu = this.dom.getBoundingClientRect(),
+                selected = this.items[this.selected].dom.getBoundingClientRect(),
+                container = hoverEl.offsetParent || document.documentElement,
+                popupHeight = hoverEl.offsetHeight,
+                left = Math.min(menu.right + 2, container.clientWidth - hoverEl.offsetWidth),
+                top = Math.min(Math.max(0, selected.top - popupHeight/8), container.clientHeight - popupHeight)
+            ;
+            hoverEl.style.top = top + "px";
+            hoverEl.style.left = left + "px";
         }
     }
 
@@ -155,6 +231,7 @@ export class FolderMenu extends PopupMenu {
     }
 
     onClickFile(file: TAbstractFile, target: HTMLDivElement, event?: MouseEvent|KeyboardEvent) {
+        this.hidePopover();
         if (event instanceof KeyboardEvent && event.key === "Enter" && Keymap.getModifiers(event) === "Alt") {
             // Open context menu w/Alt-Enter
             new ContextMenu(this, file).cascade(target);

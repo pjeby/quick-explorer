@@ -8,8 +8,7 @@ declare module "obsidian" {
         scope: Scope
         items: MenuItem[]
 
-        // 0.12.12+
-        select?(n: number): void
+        select(n: number): void
         selected: number
         onArrowDown?(e: KeyboardEvent): false
         onArrowUp(e: KeyboardEvent): false
@@ -35,6 +34,7 @@ export class PopupMenu extends Menu {
 
     match: string = ""
     resetSearchOnTimeout = debounce(() => {this.match = "";}, 1500, true)
+    visible: boolean = false
 
     constructor(public parent: MenuParent) {
         super(parent instanceof App ? parent : parent.app);
@@ -44,12 +44,9 @@ export class PopupMenu extends Menu {
         this.scope.register(null, "Escape", this.hide.bind(this));
         this.scope.register([], "ArrowLeft", this.onArrowLeft.bind(this));
 
-        // 0.12.12+
-        if (Menu.prototype.select) {
-            this.scope.register(null, "Home", this.onHome.bind(this));
-            this.scope.register(null, "End",  this.onEnd.bind(this));
-            this.scope.register([], "ArrowRight", this.onArrowRight.bind(this));
-        }
+        this.scope.register(null, "Home", this.onHome.bind(this));
+        this.scope.register(null, "End",  this.onEnd.bind(this));
+        this.scope.register([], "ArrowRight", this.onArrowRight.bind(this));
 
         // Make obsidian.Menu think mousedowns on our child menu(s) are happening
         // on us, so we won't close before an actual click occurs
@@ -63,6 +60,12 @@ export class PopupMenu extends Menu {
     onload() {
         this.scope.register(null, null, this.onKeyDown.bind(this));
         super.onload();
+        this.visible = true;
+    }
+
+    onunload() {
+        this.visible = false;
+        super.onunload();
     }
 
     onKeyDown(event: KeyboardEvent) {
@@ -89,8 +92,8 @@ export class PopupMenu extends Menu {
     find(pattern: RegExp) {
         let pos = Math.min(0, this.selected);
         for (let i=this.items.length; i; ++pos, i--) {
-            if (this.items[pos].disabled) continue;
-            if (this.items[pos].dom.textContent.match(pattern)) {
+            if (this.items[pos]?.disabled) continue;
+            if (this.items[pos]?.dom.textContent.match(pattern)) {
                 this.select(pos);
                 return true;
             }
@@ -110,7 +113,6 @@ export class PopupMenu extends Menu {
 
     select(n: number) {
         this.match = "" // reset search on move
-        if (!Menu.prototype.select) return;  // <0.12.12
         super.select(n);
         this.items[this.selected].dom.scrollIntoView()
     }
