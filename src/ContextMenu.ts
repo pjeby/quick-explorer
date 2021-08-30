@@ -1,4 +1,4 @@
-import { Keymap, Notice, TAbstractFile, TFile, TFolder, View } from "obsidian";
+import { Keymap, Modal, Notice, TAbstractFile, TFile, TFolder, View } from "obsidian";
 import { PopupMenu, MenuParent } from "./menus";
 import {i18n} from "i18next";
 
@@ -15,6 +15,9 @@ declare module "obsidian" {
                     enabled: boolean
                     instance: {
                         revealInFolder(file: TAbstractFile): void
+                        moveFileModal: Modal & {
+                            setCurrentFile(file: TAbstractFile): void
+                        }
                     }
                 }
             }
@@ -23,7 +26,7 @@ declare module "obsidian" {
     interface FileManager {
         promptForFolderDeletion(folder: TFolder): void
         promptForFileDeletion(file: TFile): void
-        promptForFileRename(file: TFile): void
+        promptForFileRename(file: TAbstractFile): void
         createNewMarkdownFile(parentFolder?: TFolder, pattern?: string): Promise<TFile>
     }
 }
@@ -54,7 +57,7 @@ export class ContextMenu extends PopupMenu {
                 if (haveFileExplorer) {
                     this.withExplorer(file)?.createAbstractFile("folder", file);
                 } else {
-                    new Notice("The File Explorer core plugin must be enabled to rename folders")
+                    new Notice("The File Explorer core plugin must be enabled to create new folders")
                     event.stopPropagation();
                 }
             }));
@@ -64,17 +67,8 @@ export class ContextMenu extends PopupMenu {
             this.addSeparator();
         }
         this.addItem(i => {
-            // Can't rename folder without file explorer
-            i.setDisabled(file instanceof TFolder && !haveFileExplorer);
             i.setTitle(optName("rename")).setIcon("pencil").onClick(event => {
-                if (file instanceof TFile) {
-                    this.app.fileManager.promptForFileRename(file);
-                } else if (haveFileExplorer) {
-                    this.withExplorer(file)?.startRenameFile(file);
-                } else {
-                    new Notice("The File Explorer core plugin must be enabled to rename folders")
-                    event.stopPropagation();
-                }
+                this.app.fileManager.promptForFileRename(file);
             });
         });
         this.addItem(i => i.setTitle(optName("delete")).setIcon("trash").onClick(() => {

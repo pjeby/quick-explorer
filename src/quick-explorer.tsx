@@ -1,4 +1,4 @@
-import {Plugin, TAbstractFile} from "obsidian";
+import {Plugin, TAbstractFile, TFolder} from "obsidian";
 import {mount, unmount} from "redom";
 import {Explorer, hoverSource} from "./Explorer";
 
@@ -32,6 +32,8 @@ export default class extends Plugin {
 
         this.addCommand({ id: "browse-vault",   name: "Browse vault",          callback: () => { this.explorer?.browseVault(); }, });
         this.addCommand({ id: "browse-current", name: "Browse current folder", callback: () => { this.explorer?.browseCurrent(); }, });
+
+        Object.defineProperty(TFolder.prototype, "basename", {get(){ return this.name; }, configurable: true})
     }
 
     onunload() {

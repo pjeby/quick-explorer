@@ -1,4 +1,4 @@
-import { TAbstractFile, TFile, TFolder, Keymap, Notice, App, Menu, HoverParent, debounce } from "obsidian";
+import { TAbstractFile, TFile, TFolder, Keymap, Notice, App, Menu, HoverParent, debounce, MenuItem } from "obsidian";
 import { hoverSource, startDrag } from "./Explorer";
 import { PopupMenu, MenuParent } from "./menus";
 import { ContextMenu } from "./ContextMenu";
@@ -54,10 +54,12 @@ export class FolderMenu extends PopupMenu {
 
     constructor(public parent: MenuParent, public folder: TFolder, public selectedFile?: TAbstractFile, public opener?: HTMLElement) {
         super(parent);
-        this.loadFiles(folder);
-        this.scope.register([],      "Tab",   this.togglePreviewMode.bind(this));
-        this.scope.register(["Mod"], "Enter", this.onEnter.bind(this));
-        this.scope.register(["Alt"], "Enter", this.onEnter.bind(this));
+        this.loadFiles(folder, selectedFile);
+        this.scope.register([],        "Tab",   this.togglePreviewMode.bind(this));
+        this.scope.register(["Mod"],   "Enter", this.onEnter.bind(this));
+        this.scope.register(["Alt"],   "Enter", this.onEnter.bind(this));
+        this.scope.register([],        "F2",    this.doRename.bind(this));
+        this.scope.register(["Shift"], "F2",    this.doMove.bind(this));
 
         const { dom } = this;
         dom.style.setProperty(
@@ -82,6 +84,39 @@ export class FolderMenu extends PopupMenu {
         return super.onArrowLeft() ?? this.openBreadcrumb(this.opener?.previousElementSibling);
     }
 
+    doRename() {
+        const file = this.currentFile()
+        if (file) this.app.fileManager.promptForFileRename(file);
+    }
+
+    doMove() {
+        const explorerPlugin = this.app.internalPlugins.plugins["file-explorer"];
+        if (!explorerPlugin.enabled) {
+            new Notice("File explorer core plugin must be enabled to move files or folders");
+            return;
+        }
+        const modal = explorerPlugin.instance.moveFileModal;
+        modal.setCurrentFile(this.currentFile());
+        modal.open()
+    }
+
+    currentItem() {
+        return this.items[this.selected];
+    }
+
+    currentFile() {
+        return this.fileForDom(this.currentItem()?.dom)
+    }
+
+    fileForDom(targetEl: HTMLDivElement) {
+        const { filePath } = targetEl?.dataset;
+        if (filePath) return this.app.vault.getAbstractFileByPath(filePath);
+    }
+
+    itemForPath(filePath: string) {
+        return this.items.findIndex(i => i.dom.dataset.filePath === filePath);
+    }
+
     openBreadcrumb(element: Element) {
         if (element && this.rootMenu() === this) {
             const prevExplorable = this.opener.previousElementSibling;
@@ -92,17 +127,16 @@ export class FolderMenu extends PopupMenu {
     }
 
     onArrowRight(): boolean | undefined {
-        const targetEl = this.items[this.selected]?.dom;
-        const { filePath } = targetEl?.dataset;
-        const file = filePath && this.app.vault.getAbstractFileByPath(filePath);
+        const file = this.currentFile();
         if (file instanceof TFolder && file !== this.selectedFile) {
-            this.onClickFile(file, targetEl);
+            this.onClickFile(file, this.currentItem().dom);
             return false;
         }
         return this.openBreadcrumb(this.opener?.nextElementSibling);
     }
 
-    loadFiles(folder: TFolder) {
+    loadFiles(folder: TFolder, selectedFile?: TAbstractFile) {
+        this.dom.empty(); this.items = [];
         const allFiles = this.app.vault.getConfig("showUnsupportedFiles");
         const {children, parent} = folder;
         const items = children.slice().sort((a: TAbstractFile, b: TAbstractFile) => alphaSort(a.name, b.name))
@@ -114,6 +148,7 @@ export class FolderMenu extends PopupMenu {
         folders.map(this.addFile, this);
         if (folders.length && files.length) this.addSeparator();
         files.map(  this.addFile, this);
+        if (selectedFile) this.select(this.itemForPath(selectedFile.path)); else this.selected = -1;
     }
 
     addFile(file: TAbstractFile) {
@@ -128,9 +163,6 @@ export class FolderMenu extends PopupMenu {
                 if (file.extension !== "md") i.dom.createDiv({text: file.extension, cls: "nav-file-tag"});
             }
             i.onClick(e => this.onClickFile(file, i.dom, e))
-            if (file === this.selectedFile) {
-                this.select(this.items.length-1);
-            }
         });
     }
 
@@ -140,8 +172,29 @@ export class FolderMenu extends PopupMenu {
 
     onload() {
         super.onload();
+        this.registerEvent(this.app.vault.on("rename", (file, oldPath) => {
+            if (this.folder === file.parent) {
+                // Destination was here; refresh the list
+                const selectedFile = this.itemForPath(oldPath) >= 0 ? file : this.currentFile();
+                this.loadFiles(this.folder, selectedFile);
+            } else {
+                // Remove it if it was moved out of here
+                this.removeItemForPath(oldPath);
+            }
+        }));
+        this.registerEvent(this.app.vault.on("delete", file => this.removeItemForPath(file.path)));
+
         // Activate preview immediately if applicable
         if (autoPreview && this.selected != -1) this.showPopover();
+    }
+
+    removeItemForPath(path: string) {
+        const posn = this.itemForPath(path);
+        if (posn < 0) return;
+        const item = this.items[posn];
+        if (this.selected > posn) this.selected -= 1;
+        item.dom.detach()
+        this.items.remove(item);
     }
 
     hide() {
@@ -169,7 +222,7 @@ export class FolderMenu extends PopupMenu {
     showPopover = debounce(() => {
         this.hidePopover();
         if (!autoPreview) return;
-        this.maybeHover(this.items[this.selected]?.dom, file => this.app.workspace.trigger('link-hover', this, null, file.path, ""));
+        this.maybeHover(this.currentItem()?.dom, file => this.app.workspace.trigger('link-hover', this, null, file.path, ""));
     }, 50, true)
 
     onItemHover = (event: MouseEvent, targetEl: HTMLDivElement) => {
@@ -180,10 +233,9 @@ export class FolderMenu extends PopupMenu {
 
     maybeHover(targetEl: HTMLDivElement, cb: (file: TFile) => void) {
         if (!this.canShowPopover()) return;
-        const { filePath } = targetEl?.dataset;
-        let file = filePath && this.app.vault.getAbstractFileByPath(filePath);
+        let file = this.fileForDom(targetEl)
         if (file instanceof TFolder) {
-            file = this.app.vault.getAbstractFileByPath(filePath+"/"+file.name+".md");
+            file = this.app.vault.getAbstractFileByPath(file.path+"/"+file.name+".md");
         }
         if (file instanceof TFile && previewIcons[this.app.viewRegistry.getTypeByExtension(file.extension)]) {
             cb(file)
@@ -198,7 +250,7 @@ export class FolderMenu extends PopupMenu {
     set hoverPopover(popover) {
         if (popover && !this.canShowPopover()) { popover.hide(); return; }
         this._popover = popover;
-        if (autoPreview && popover) {
+        if (autoPreview && popover && this.currentItem()) {
             // Position the popover so it doesn't overlap the menu horizontally (as long as it fits)
             // and so that its vertical position overlaps the selected menu item (placing the top a
             // bit above the current item, unless it would go off the bottom of the screen)
@@ -206,7 +258,7 @@ export class FolderMenu extends PopupMenu {
             hoverEl.show();
             const
                 menu = this.dom.getBoundingClientRect(),
-                selected = this.items[this.selected].dom.getBoundingClientRect(),
+                selected = this.currentItem().dom.getBoundingClientRect(),
                 container = hoverEl.offsetParent || document.documentElement,
                 popupHeight = hoverEl.offsetHeight,
                 left = Math.min(menu.right + 2, container.clientWidth - hoverEl.offsetWidth),
@@ -218,8 +270,7 @@ export class FolderMenu extends PopupMenu {
     }
 
     onItemClick = (event: MouseEvent, target: HTMLDivElement) => {
-        const { filePath } = target.dataset;
-        const file = this.app.vault.getAbstractFileByPath(filePath);
+        const file = this.fileForDom(target);
         this.lastOver = target;
         if (!file) return;
         if (!this.onClickFile(file, target, event)) {
@@ -242,6 +293,7 @@ export class FolderMenu extends PopupMenu {
                 this.app.workspace.openLinkText(file.path, "", event && Keymap.isModifier(event, "Mod"));
                 // Close the entire menu tree
                 this.rootMenu().hide();
+                event?.stopPropagation();
                 return true;
             } else {
                 new Notice(`.${file.extension} files cannot be opened in Obsidian; Use "Open in Default App" to open them externally`);
@@ -264,8 +316,7 @@ export class FolderMenu extends PopupMenu {
     }
 
     onItemMenu = (event: MouseEvent, target: HTMLDivElement) => {
-        const { filePath } = target.dataset;
-        const file = this.app.vault.getAbstractFileByPath(filePath);
+        const file = this.fileForDom(target);
         if (file) {
             this.lastOver = target;
             new ContextMenu(this, file).cascade(target, event);
