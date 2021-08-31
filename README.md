@@ -55,7 +55,7 @@ Quick explorer also includes two hotkeyable commands:
 
 ### Installation
 
-This plugin is still in early development, so it's only available via git checkout at the moment.  If you don't know what that is or how to do it, you should probably wait until there's an official release.
+If this plugin isn't listed in the Obsidian plugin registry yet, you'll need to use a git checkout or download and unzip the release zipfile in the `.obsidian/plugins` directory of the vault you want to add it to.
 
 ### Current Limitations
 
@@ -63,4 +63,5 @@ This plugin is still in early development, so it's only available via git checko
 * You can drag things *out of* the dropdowns, but you can't drop anything *into* them
 * Accessing context menus may be difficult when opening folders that are too big to fit on the screen and require scrolling
 * There is no way to configure sorting or grouping of files
+* Only "inside same"-style folder notes are supported
 
