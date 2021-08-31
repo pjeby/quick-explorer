@@ -44,8 +44,8 @@ export class PopupMenu extends Menu {
         this.scope.register(null, "Escape", this.hide.bind(this));
         this.scope.register([], "ArrowLeft", this.onArrowLeft.bind(this));
 
-        this.scope.register(null, "Home", this.onHome.bind(this));
-        this.scope.register(null, "End",  this.onEnd.bind(this));
+        this.scope.register([], "Home", this.onHome.bind(this));
+        this.scope.register([], "End",  this.onEnd.bind(this));
         this.scope.register([], "ArrowRight", this.onArrowRight.bind(this));
 
         // Make obsidian.Menu think mousedowns on our child menu(s) are happening

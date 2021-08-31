@@ -20,6 +20,7 @@ And an extensive set of keyboard operations is available as well:
 * Alt + Enter opens a context menu for the selected file or folder
 * F2 initiates a rename of the current file or folder, Shift+F2 begins a move
 * Tab toggles "quick preview" mode: when active, hovering or arrowing to an item will automatically display a hover preview for it, positioned so that it's always *outside* the menu (unless you're so deep in subfolders you've reached the edge of your screen).  This makes it really easy to browse the contents of a folder just by arrowing down through it.
+* If a page preview is active for the current file or folder, PageUp and PageDown scroll it up and down, with Ctrl-or-Cmd + Home or End jump to the beginning or end of the note.  Scrolling past the end or before the beginning (or using any of these keys without an active preview) advances the selection to the next or previous file/folder in the list.
 
 And speaking of previews, Quick Explorer's previews support **folder notes**!  When hover-previewing a folder (or after arrowing to it in quick preview mode), it's checked for a note whose name is the same as the folder, and then that note is shown without you needing to open the folder first.  It's a huge time saver if you have a lot of folder notes.  (Check out the Note Folder Autorename plugin if you'd like to automatically rename or move folders when the note is renamed, too.)
 

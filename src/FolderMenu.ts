@@ -61,6 +61,12 @@ export class FolderMenu extends PopupMenu {
         this.scope.register([],        "F2",    this.doRename.bind(this));
         this.scope.register(["Shift"], "F2",    this.doMove.bind(this));
 
+        // Scroll preview window up and down
+        this.scope.register([],       "PageUp", this.doScroll.bind(this, -1, false));
+        this.scope.register([],     "PageDown", this.doScroll.bind(this,  1, false));
+        this.scope.register(["Mod"],    "Home", this.doScroll.bind(this,  0, true));
+        this.scope.register(["Mod"],     "End", this.doScroll.bind(this,  1, true));
+
         const { dom } = this;
         dom.style.setProperty(
             // Allow popovers (hover preview) to overlay this menu
@@ -82,6 +88,26 @@ export class FolderMenu extends PopupMenu {
 
     onArrowLeft(): boolean | undefined {
         return super.onArrowLeft() ?? this.openBreadcrumb(this.opener?.previousElementSibling);
+    }
+
+    doScroll(direction: number, toEnd: boolean, event: KeyboardEvent) {
+        const preview = this.hoverPopover?.hoverEl.find(".markdown-preview-view");
+        if (preview) {
+            preview.style.scrollBehavior = toEnd ? "auto": "smooth";
+            const newTop = (toEnd ? 0 : preview.scrollTop) + direction * (toEnd ? preview.scrollHeight : preview.clientHeight);
+            preview.scrollTop = newTop;
+            if (!toEnd) {
+                // Paging past the beginning or end
+                if (newTop >= preview.scrollHeight) {
+                    this.onArrowDown(event);
+                } else if (newTop < 0) {
+                    this.onArrowUp(event);
+                }
+            }
+        } else {
+            // No preview, just go to next or previous item
+            if (direction > 0) this.onArrowDown(event); else this.onArrowUp(event);
+        }
     }
 
     doRename() {
