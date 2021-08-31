@@ -64,7 +64,7 @@ export class PopupMenu extends Menu {
         this.visible = true;
         // We wait until now to register so that any initial mouseover of the old mouse position will be skipped
         this.register(onElement(this.dom, "mouseover", ".menu-item", (event: MouseEvent, target: HTMLDivElement) => {
-            if (mouseMoved(event) && !target.hasClass("is-disabled")) {
+            if (mouseMoved(event) && !target.hasClass("is-disabled") && !this.child) {
                 this.select(this.items.findIndex(i => i.dom === target), false);
             }
         }));
