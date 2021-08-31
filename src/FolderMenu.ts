@@ -260,12 +260,18 @@ export class FolderMenu extends PopupMenu {
     maybeHover(targetEl: HTMLDivElement, cb: (file: TFile) => void) {
         if (!this.canShowPopover()) return;
         let file = this.fileForDom(targetEl)
-        if (file instanceof TFolder) {
-            file = this.app.vault.getAbstractFileByPath(file.path+"/"+file.name+".md");
-        }
+        if (file instanceof TFolder) file = this.folderNote(file);
         if (file instanceof TFile && previewIcons[this.app.viewRegistry.getTypeByExtension(file.extension)]) {
             cb(file)
         };
+    }
+
+    folderNote(folder: TFolder) {
+        return this.app.vault.getAbstractFileByPath(this.folderNotePath(folder));
+    }
+
+    folderNotePath(folder: TFolder) {
+        return `${folder.path}/${folder.name}.md`;
     }
 
 
@@ -336,7 +342,7 @@ export class FolderMenu extends PopupMenu {
             this.openBreadcrumb(this.opener?.nextElementSibling);
         } else {
             // Otherwise, pop a new menu for the subfolder
-            const folderMenu = new FolderMenu(this, file as TFolder, this.folder);
+            const folderMenu = new FolderMenu(this, file as TFolder, this.folderNote(file as TFolder) || this.folder);
             folderMenu.cascade(target, event instanceof MouseEvent ? event : undefined);
         }
     }
