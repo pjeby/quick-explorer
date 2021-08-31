@@ -4,11 +4,29 @@
 
 Enter Quick Explorer.  It's menu-based and **keyboard-friendly**, stays out of your way when you aren't using it, and makes it super-easy to navigate from either the vault root or current folder, without needing to scroll through or collapse a zillion other folders to find what you're looking for.  You can even **search by name within a folder**, just by typing.
 
-But wait, there's more: a **quick-preview mode** that makes previewing lots of notes super easy, with no mousing and no popups overhanging the file list: you can just keep hitting the PgDn key to page through the contents of all the notes in a folder.
+&nbsp;
+
+![](https://raw.githubusercontent.com/pjeby/quick-explorer/master/quick-explorer.png)
+
+&nbsp;
+
+But wait, there's more: a **quick-preview mode** that makes previewing lots of notes super easy, with no mousing and no popups overhanging the file list: you can just keep hitting the PgDn key to page through the contents of all the notes in a folder, as quickly as if they were pages in a notebook or scrolling through single giant document:
+
+&nbsp;
+
+![](https://raw.githubusercontent.com/pjeby/quick-explorer/master/quick-preview.png)
+
+&nbsp;
 
 **Folder notes** are supported, too: previewing a folder shows the folder note without you first needing to navigate into the folder and find the note, and when you navigate into the folder its folder note is automatically selected, if present.  (A "folder note" is a note whose name is the same as the name of its enclosing folder: other Obsidian plugins such as [Note Folder Autorename](https://github.com/pjeby/note-folder-autorename) can be used to help create or maintain them.)
 
+![](https://raw.githubusercontent.com/pjeby/quick-explorer/master/folder-note.png)
+
+&nbsp;
+
 And last, but far from least, you can even see the path of the current file as a "breadcrumbs bar" in the window title bar.  Each breadcrumb, when clicked, drops down a list of the the files and folders in the same directory.  So if you click on the breadcrumb for the current file, you'll see the items in its folder, and the first breadcrumb will show items in the vault root.
+
+![](https://raw.githubusercontent.com/pjeby/quick-explorer/master/breadcrumbs.png)
 
 No matter where you click, though, you can then do almost anything that can be done with Obsidian's built-in file explorer:
 
