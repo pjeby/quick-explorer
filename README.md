@@ -10,7 +10,7 @@ Enter Quick Explorer.  It's menu-based and **keyboard-friendly**, stays out of y
 
 &nbsp;
 
-But wait, there's more: a **quick-preview mode** that makes previewing lots of notes super easy, with no mousing and no popups overhanging the file list: you can just keep hitting the PgDn key to page through the contents of all the notes in a folder, as quickly as if they were pages in a notebook or scrolling through single giant document:
+But wait, there's more: a **quick-preview mode** that makes previewing lots of notes super easy, with no mousing and no popups overhanging the file list: you can just keep hitting the PgDn key to scroll through the full contents of every note in a folder, as quickly as if they were pages in a notebook, or as scrolling through a single giant document:
 
 &nbsp;
 
@@ -18,19 +18,19 @@ But wait, there's more: a **quick-preview mode** that makes previewing lots of n
 
 &nbsp;
 
-**Folder notes** are supported, too: previewing a folder shows the folder note without you first needing to navigate into the folder and find the note, and when you navigate into the folder its folder note is automatically selected, if present.  (A "folder note" is a note whose name is the same as the name of its enclosing folder: other Obsidian plugins such as [Note Folder Autorename](https://github.com/pjeby/note-folder-autorename) can be used to help create or maintain them.)
+**Folder notes** are supported, too: previewing a folder shows the folder note without you first needing to navigate into the folder and find the note, and when you do navigate into the folder its folder note will be automatically selected, if present.  (A "folder note" is a note whose name is the same as the name of its enclosing folder: other Obsidian plugins such as [Note Folder Autorename](https://github.com/pjeby/note-folder-autorename) can be used to help create or maintain them.)
 
 ![](https://raw.githubusercontent.com/pjeby/quick-explorer/master/folder-note.png)
 
 &nbsp;
 
-And last, but far from least, you can even see the path of the current file as a "breadcrumbs bar" in the window title bar.  Each breadcrumb, when clicked, drops down a list of the the files and folders in the same directory.  So if you click on the breadcrumb for the current file, you'll see the items in its folder, and the first breadcrumb will show items in the vault root.
+And last, but far from least, you can even see the path of the current note file as a "breadcrumbs bar" in the window title bar.  Each breadcrumb, when clicked, drops down a list of the the files and folders in the same directory.  So if you click on the breadcrumb for the current file, you'll see the items in its folder, and the first breadcrumb will show items in the vault root.
 
 ![](https://raw.githubusercontent.com/pjeby/quick-explorer/master/breadcrumbs.png)
 
 No matter where you click, though, you can then do almost anything that can be done with Obsidian's built-in file explorer:
 
-* Ctrl/Cmd + Hover to preview files (if the built-in Page Preview plugin is enabled)
+* Ctrl/Cmd + Hover to preview files with the mouse (if the built-in Page Preview plugin is enabled)
 * Click to open files (with ctrl or cmd to open in a new pane)
 * Right-click to get a full context menu for any file, folder, or breadcrumb
 * Drag any file, folder, or breadcrumb to drop anywhere that supports dropping (e.g. to stars, into text editors to create links, pane headers to open in the pane, folders in the file explorer to move them, Kanban lanes, etc.)
@@ -44,9 +44,9 @@ And an extensive set of keyboard operations is available as well:
 * Alt + Enter opens a context menu for the selected file or folder
 * F2 initiates a rename of the current file or folder, Shift+F2 begins a move
 * Tab toggles "quick preview" mode: when active, hovering or arrowing to an item will automatically display a hover preview for it, positioned so that it's always *outside* the menu (unless you're so deep in subfolders you've reached the edge of your screen).  This makes it really easy to browse the contents of a folder just by arrowing down through it.
-* If a page preview is active for the current file or folder, PageUp and PageDown scroll it up and down, with Ctrl-or-Cmd + Home or End jump to the beginning or end of the note.  Scrolling past the end or before the beginning (or using any of these keys without an active preview) advances the selection to the next or previous file/folder in the list.
+* If a page preview is active for the current file or folder, PageUp and PageDown scroll it up and down, with Ctrl-or-Cmd + Home or End jumping to the beginning or end of the note.  Scrolling past the end or before the beginning (or using any of these keys without an active preview) advances the selection to the next or previous file/folder in the list.
 
-Like the built-in file explorer, Quick Explorer will either show all files, or only the ones supported by Obsidian, depending upon whether "Detect all file extensions" is enabled in the "Files and Links" options tab.
+Like the built-in file explorer, Quick Explorer will either show all files, or only the ones supported by Obsidian, depending upon whether the "Detect all file extensions" setting is enabled in the "Files and Links" options tab.
 
 Quick explorer also includes two hotkeyable commands:
 
