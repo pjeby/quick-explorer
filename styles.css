@@ -3,12 +3,13 @@
   padding-left: 10px;
   padding-right: 10px;
   z-index: var(--layer-cover);
-  background-color: var(--background-modifier-cover); }
+  background-color: var(--background-translucent) !important; }
   #quick-explorer .explorable {
     font-size: 12px;
     opacity: 0.75;
     cursor: pointer;
-    padding: 0; }
+    padding: 0;
+    display: unset; }
     #quick-explorer .explorable.selected, #quick-explorer .explorable:hover {
       background-color: var(--interactive-accent-hover);
       color: var(--text-on-accent);

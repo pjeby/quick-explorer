@@ -5,13 +5,14 @@
 
     // Ensure we overlay the main title text if the window's too narrow
     z-index: var(--layer-cover);
-    background-color: var(--background-modifier-cover);
+    background-color: var(--background-translucent) !important;
 
     .explorable {
         font-size: 12px;
         opacity: 0.75;
         cursor: pointer;
         padding: 0;
+        display: unset;
 
         &.selected, &:hover {
             background-color: var(--interactive-accent-hover);
