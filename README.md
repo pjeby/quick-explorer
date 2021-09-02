@@ -61,7 +61,6 @@ If this plugin isn't listed in the Obsidian plugin registry yet, you'll need to 
 
 * Files are always sorted in ascending name order (using the same collation rules as the file-explorer view)
 * You can drag things *out of* the dropdowns, but you can't drop anything *into* them
-* Accessing context menus may be difficult when opening folders that are too big to fit on the screen and require scrolling
 * There is no way to configure sorting or grouping of files
 * Only "inside same"-style folder notes are supported
 
