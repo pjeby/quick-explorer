@@ -1,4 +1,4 @@
-import {Menu, App, MenuItem, debounce, Keymap, Scope} from "obsidian";
+import {Menu, App, MenuItem, debounce, Keymap, Scope, fuzzySearch, prepareQuery, sortSearchResults, SearchResultContainer} from "obsidian";
 import {around} from "monkey-around";
 
 declare module "obsidian" {
@@ -103,25 +103,25 @@ export class PopupMenu extends Menu {
         return false;   // block all keys other than ours
     }
 
-    searchFor(match: string) {
-        const parts = match.split("").map(escapeRegex);
-        return (
-            this.find(new RegExp("^"+ parts.join(""), "ui")) ||
-            this.find(new RegExp("^"+ parts.join(".*"), "ui")) ||
-            this.find(new RegExp(parts.join(".*"), "ui"))
-        );
-    }
-
-    find(pattern: RegExp) {
-        let pos = Math.min(0, this.selected);
+    searchFor(match: string): boolean {
+        const query = prepareQuery(match);
+        let pos = Math.min(0, this.selected), 
+            results = [] as (SearchResultContainer & { pos: number })[];
         for (let i=this.items.length; i; ++pos, i--) {
             if (this.items[pos]?.disabled) continue;
-            if (this.items[pos]?.dom.textContent.match(pattern)) {
-                this.select(pos);
-                return true;
-            }
+            const itemText = this.items[pos]?.dom.textContent; 
+            if (!itemText) continue;
+            const match = fuzzySearch(query, itemText);
+            match && results.push({ match, pos });
         }
-        return false
+        if (results.length===0) {
+            return false;
+        }
+        else {
+            sortSearchResults(results);
+            this.select(results.first().pos);
+            return true;
+        }
     }
 
     onEnter(event: KeyboardEvent) {
