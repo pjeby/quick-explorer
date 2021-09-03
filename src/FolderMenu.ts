@@ -50,14 +50,14 @@ let autoPreview = false
 export class FolderMenu extends PopupMenu {
 
     parentFolder: TFolder = this.parent instanceof FolderMenu ? this.parent.folder : null;
-    lastOver: HTMLElement = null;
 
     constructor(public parent: MenuParent, public folder: TFolder, public selectedFile?: TAbstractFile, public opener?: HTMLElement) {
         super(parent);
         this.loadFiles(folder, selectedFile);
         this.scope.register([],        "Tab",   this.togglePreviewMode.bind(this));
         this.scope.register(["Mod"],   "Enter", this.onEnter.bind(this));
-        this.scope.register(["Alt"],   "Enter", this.onEnter.bind(this));
+        this.scope.register(["Alt"],   "Enter", this.onKeyboardContextMenu.bind(this));
+        this.scope.register([],        "\\",    this.onKeyboardContextMenu.bind(this));
         this.scope.register([],        "F2",    this.doRename.bind(this));
         this.scope.register(["Shift"], "F2",    this.doMove.bind(this));
 
@@ -88,6 +88,11 @@ export class FolderMenu extends PopupMenu {
 
     onArrowLeft(): boolean | undefined {
         return super.onArrowLeft() ?? this.openBreadcrumb(this.opener?.previousElementSibling);
+    }
+
+    onKeyboardContextMenu() {
+        const target = this.items[this.selected]?.dom, file = target && this.fileForDom(target);
+        if (file) new ContextMenu(this, file).cascade(target);
     }
 
     doScroll(direction: number, toEnd: boolean, event: KeyboardEvent) {
@@ -223,9 +228,19 @@ export class FolderMenu extends PopupMenu {
         this.items.remove(item);
     }
 
+    onEscape() {
+        super.onEscape();
+        if (this.parent instanceof PopupMenu) this.parent.onEscape();
+    }
+
     hide() {
         this.hidePopover();
         return super.hide();
+    }
+
+    setChildMenu(menu: PopupMenu) {
+        super.setChildMenu(menu);
+        if (autoPreview && this.canShowPopover()) this.showPopover();
     }
 
     select(idx: number, scroll = true) {
@@ -303,7 +318,6 @@ export class FolderMenu extends PopupMenu {
 
     onItemClick = (event: MouseEvent, target: HTMLDivElement) => {
         const file = this.fileForDom(target);
-        this.lastOver = target;
         if (!file) return;
         if (!this.onClickFile(file, target, event)) {
             // Keep current menu tree open
@@ -315,11 +329,9 @@ export class FolderMenu extends PopupMenu {
 
     onClickFile(file: TAbstractFile, target: HTMLDivElement, event?: MouseEvent|KeyboardEvent) {
         this.hidePopover();
-        if (event instanceof KeyboardEvent && event.key === "Enter" && Keymap.getModifiers(event) === "Alt") {
-            // Open context menu w/Alt-Enter
-            new ContextMenu(this, file).cascade(target);
-            return
-        }
+        const idx = this.itemForPath(file.path);
+        if (idx >= 0 && this.selected != idx) this.select(idx);
+
         if (file instanceof TFile) {
             if (this.app.viewRegistry.isExtensionRegistered(file.extension)) {
                 this.app.workspace.openLinkText(file.path, "", event && Keymap.isModifier(event, "Mod"));
@@ -350,7 +362,8 @@ export class FolderMenu extends PopupMenu {
     onItemMenu = (event: MouseEvent, target: HTMLDivElement) => {
         const file = this.fileForDom(target);
         if (file) {
-            this.lastOver = target;
+            const idx = this.itemForPath(file.path);
+            if (idx >= 0 && this.selected != idx) this.select(idx);
             new ContextMenu(this, file).cascade(target, event);
             // Keep current menu tree open
             event.stopPropagation();

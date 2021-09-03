@@ -45,22 +45,54 @@ export class Explorer {
             new ContextMenu(app, file).cascade(target, event);
         });
         this.el.on("click", ".explorable", (event, target) => {
-            const { parentPath, filePath } = target.dataset;
-            const folder = app.vault.getAbstractFileByPath(parentPath);
-            const selected = app.vault.getAbstractFileByPath(filePath);
-            new FolderMenu(app, folder as TFolder, selected, target).cascade(target, event.isTrusted && event);
+            this.folderMenu(target, event.isTrusted && event);
         });
         this.el.on('dragstart', ".explorable", (event, target) => {
             startDrag(app, target.dataset.filePath, event);
         });
     }
 
+    folderMenu(opener: HTMLElement = this.el.firstElementChild as HTMLElement, event?: MouseEvent) {
+        const { filePath } = opener.dataset
+        const selected = this.app.vault.getAbstractFileByPath(filePath);
+        const folder = selected.parent;
+        return new FolderMenu(this.app, folder, selected, opener).cascade(opener, event);
+    }
+
     browseVault() {
-        (this.el.firstElementChild as HTMLDivElement).click();
+        return this.folderMenu();
     }
 
     browseCurrent() {
-        (this.el.lastElementChild as HTMLDivElement).click();
+        return this.folderMenu(this.el.lastElementChild as HTMLDivElement);
+    }
+
+    browseFile(file: TAbstractFile) {
+        if (file === this.app.workspace.getActiveFile()) return this.browseCurrent();
+        let menu: FolderMenu;
+        let opener: HTMLElement = this.el.firstElementChild as HTMLElement;
+        const path = [], parts = file.path.split("/").filter(p=>p);
+        while (opener && parts.length) {
+            path.push(parts[0]);
+            if (opener.dataset.filePath !== path.join("/")) {
+                menu = this.folderMenu(opener);
+                path.pop();
+                break
+            }
+            parts.shift();
+            opener = opener.nextElementSibling as HTMLElement;
+        }
+        while (menu && parts.length) {
+            path.push(parts.shift());
+            const idx = menu.itemForPath(path.join("/"));
+            if (idx == -1) break
+            menu.select(idx);
+            if (parts.length || file instanceof TFolder) {
+                menu.onArrowRight();
+                menu = menu.child as FolderMenu;
+            }
+        }
+        return menu;
     }
 
     update(file: TAbstractFile) {

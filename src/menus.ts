@@ -1,4 +1,4 @@
-import {Menu, App, MenuItem, debounce, Keymap} from "obsidian";
+import {Menu, App, MenuItem, debounce, Keymap, Scope} from "obsidian";
 import {around} from "monkey-around";
 
 declare module "obsidian" {
@@ -21,6 +21,7 @@ declare module "obsidian" {
 
     interface MenuItem {
         dom: HTMLDivElement
+        titleEl: HTMLDivElement
         handleEvent(event: Event): void
         disabled: boolean
     }
@@ -40,8 +41,11 @@ export class PopupMenu extends Menu {
         super(parent instanceof App ? parent : parent.app);
         if (parent instanceof PopupMenu) parent.setChildMenu(this);
 
-        // Escape to close the menu
-        this.scope.register(null, "Escape", this.hide.bind(this));
+        this.scope = new Scope;
+        this.scope.register([], "ArrowUp",   this.onArrowUp.bind(this));
+        this.scope.register([], "ArrowDown", this.onArrowDown.bind(this));
+        this.scope.register([], "Enter",     this.onEnter.bind(this));
+        this.scope.register([], "Escape",    this.onEscape.bind(this));
         this.scope.register([], "ArrowLeft", this.onArrowLeft.bind(this));
 
         this.scope.register([], "Home", this.onHome.bind(this));
@@ -56,6 +60,10 @@ export class PopupMenu extends Menu {
             return ret;
         }}});
         this.dom.addClass("qe-popup-menu");
+    }
+
+    onEscape() {
+        this.hide();
     }
 
     onload() {
@@ -180,8 +188,8 @@ export class PopupMenu extends Menu {
     }
 
     cascade(target: HTMLElement, event?: MouseEvent,  hOverlap = 15, vOverlap = 5) {
-        const {left, right, top, bottom} = target.getBoundingClientRect();
-        const centerX = (left+right)/2, centerY = (top+bottom)/2;
+        const {left, right, top, bottom, width} = target.getBoundingClientRect();
+        const centerX = left+Math.min(150, width/3), centerY = (top+bottom)/2;
         const {innerHeight, innerWidth} = window;
 
         // Try to cascade down and to the right from the mouse or horizontal center

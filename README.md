@@ -41,7 +41,7 @@ And an extensive set of keyboard operations is available as well:
 * Up, Down, Home, and End move within a folder or context menu
 * Left and Right arrows select parent or child folders
 * Enter selects an item to open, Ctrl-or-Cmd + Enter opens a file in a new pane
-* Alt + Enter opens a context menu for the selected file or folder
+* Backslash (`\`) or Alt + Enter opens a context menu for the selected file or folder
 * F2 initiates a rename of the current file or folder, Shift+F2 begins a move
 * Tab toggles "quick preview" mode: when active, hovering or arrowing to an item will automatically display a hover preview for it, positioned so that it's always *outside* the menu (unless you're so deep in subfolders you've reached the edge of your screen).  This makes it really easy to browse the contents of a folder just by arrowing down through it.
 * If a page preview is active for the current file or folder, PageUp and PageDown scroll it up and down, with Ctrl-or-Cmd + Home or End jumping to the beginning or end of the note.  Scrolling past the end or before the beginning (or using any of these keys without an active preview) advances the selection to the next or previous file/folder in the list.
@@ -52,6 +52,8 @@ Quick explorer also includes two hotkeyable commands:
 
 * **Browse vault**, which opens the dropdown for the vault root, and
 * **Browse current folder**, which opens the dropdown for the active file's containing folder
+
+And last, but not least, it also adds a "Show in Quick Explorer" option to all file menus other than its own.  That way, you can use it from links, graph views, the Pane Relief history menus, other views (like Stars or Recent Files), etc., so you can use it instead of the File Explorer.
 
 ### Installation
 
