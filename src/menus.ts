@@ -1,5 +1,6 @@
 import {Menu, App, MenuItem, debounce, Keymap, Scope, fuzzySearch, prepareQuery, sortSearchResults, SearchResultContainer} from "obsidian";
 import {around} from "monkey-around";
+import { API_NAME } from "@aidenlx/chs-patch";
 
 declare module "obsidian" {
     interface Menu {
@@ -104,13 +105,18 @@ export class PopupMenu extends Menu {
     }
 
     searchFor(match: string): boolean {
+        const chsApiName: API_NAME = "ChsPatchAPI";
         const query = prepareQuery(match);
         let pos = Math.min(0, this.selected), 
             results = [] as (SearchResultContainer & { pos: number })[];
         for (let i=this.items.length; i; ++pos, i--) {
             if (this.items[pos]?.disabled) continue;
-            const itemText = this.items[pos]?.dom.textContent; 
+            let itemText = this.items[pos]?.dom.textContent; 
             if (!itemText) continue;
+            let api;
+            if ((api=window[chsApiName]) && api.chsRegex.test(itemText)) {
+                itemText = (api.pinyin(itemText) as string[][]).flat().join(" ")
+            }
             const match = fuzzySearch(query, itemText);
             match && results.push({ match, pos });
         }
