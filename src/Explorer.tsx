@@ -53,9 +53,9 @@ export class Explorer {
     }
 
     folderMenu(opener: HTMLElement = this.el.firstElementChild as HTMLElement, event?: MouseEvent) {
-        const { filePath } = opener.dataset
+        const { filePath, parentPath } = opener.dataset
         const selected = this.app.vault.getAbstractFileByPath(filePath);
-        const folder = selected.parent;
+        const folder = this.app.vault.getAbstractFileByPath(parentPath) as TFolder;
         return new FolderMenu(this.app, folder, selected, opener).cascade(opener, event);
     }
 
