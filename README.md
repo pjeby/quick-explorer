@@ -55,9 +55,9 @@ Quick explorer also includes two hotkeyable commands:
 
 And last, but not least, it also adds a "Show in Quick Explorer" option to all file menus other than its own.  That way, you can use it from links, graph views, the Pane Relief history menus, other views (like Stars or Recent Files), etc., so you can use it instead of the File Explorer.
 
-### Installation
+### Usage Notes
 
-If this plugin isn't listed in the Obsidian plugin registry yet, you'll need to use a git checkout or download and unzip the release zipfile in the `.obsidian/plugins` directory of the vault you want to add it to.
+> Using a dark theme?  Many Obsidian themes do not have good contrast for highlighting menu selections, which makes them *much* harder to use with keyboard selection.  Quick Explorer detects Obsidian's dark mode and tries to improve selection contrast in that case, but you may need to make sure dark *mode* is switched on for that to work.  You might also contact the theme developer and ask them to improve their menu selection styling, since the contrast issue will also affect you using the keyboard for any other popup menus in Obsidian!
 
 ### Current Limitations
 
