@@ -21,9 +21,7 @@
 .qe-popup-menu .menu-item:not(.is-disabled):not(.is-label) {
   display: flex; }
   .qe-popup-menu .menu-item:not(.is-disabled):not(.is-label).selected {
-    background-color: var(--background-secondary-alt); }
-    body.theme-dark .qe-popup-menu .menu-item:not(.is-disabled):not(.is-label).selected {
-      background-color: var(--interactive-accent-hover); }
+    background-color: var(--interactive-accent-hover); }
   .qe-popup-menu .menu-item:not(.is-disabled):not(.is-label):hover:not(.selected) {
     background-color: var(--background-primary); }
   .qe-popup-menu .menu-item:not(.is-disabled):not(.is-label) .menu-item-title {
@@ -34,10 +32,8 @@
     opacity: 0.4;
     background-color: transparent; }
   .qe-popup-menu .menu-item:not(.is-disabled):not(.is-label):hover, .qe-popup-menu .menu-item:not(.is-disabled):not(.is-label).selected {
-    color: var(--text-normal); }
-    body.theme-dark .qe-popup-menu .menu-item:not(.is-disabled):not(.is-label):hover, body.theme-dark .qe-popup-menu .menu-item:not(.is-disabled):not(.is-label).selected {
-      color: var(--text-on-accent); }
-    body.theme-dark .qe-popup-menu .menu-item:not(.is-disabled):not(.is-label):hover .menu-item-icon, body.theme-dark .qe-popup-menu .menu-item:not(.is-disabled):not(.is-label).selected .menu-item-icon {
+    color: var(--text-on-accent); }
+    .qe-popup-menu .menu-item:not(.is-disabled):not(.is-label):hover .menu-item-icon, .qe-popup-menu .menu-item:not(.is-disabled):not(.is-label).selected .menu-item-icon {
       color: var(--text-on-accent); }
     .qe-popup-menu .menu-item:not(.is-disabled):not(.is-label):hover .nav-file-tag, .qe-popup-menu .menu-item:not(.is-disabled):not(.is-label).selected .nav-file-tag {
       opacity: 1; }

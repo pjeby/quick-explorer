@@ -29,8 +29,7 @@
 .qe-popup-menu .menu-item:not(.is-disabled):not(.is-label) {
     display: flex;
     &.selected {
-        background-color: var(--background-secondary-alt);
-        body.theme-dark & { background-color: var(--interactive-accent-hover); }
+        background-color: var(--interactive-accent-hover);
     }
     &:hover:not(.selected) {
         background-color: var(--background-primary);
@@ -47,10 +46,9 @@
     }
 
     &:hover, &.selected {
-        color: var(--text-normal);
-        body.theme-dark & { color: var(--text-on-accent); }
+        color: var(--text-on-accent);
         .menu-item-icon {
-            body.theme-dark & { color: var(--text-on-accent); }
+            color: var(--text-on-accent);
         }
         .nav-file-tag {
             opacity: 1;     // make it more visible for the current item

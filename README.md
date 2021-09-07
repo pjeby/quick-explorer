@@ -55,9 +55,13 @@ Quick explorer also includes two hotkeyable commands:
 
 And last, but not least, it also adds a "Show in Quick Explorer" option to all file menus other than its own.  That way, you can use it from links, graph views, the Pane Relief history menus, other views (like Stars or Recent Files), etc., so you can use it instead of the File Explorer.
 
-### Usage Notes
+### Theme Compatibility
 
-> Using a dark theme?  Many Obsidian themes do not have good contrast for highlighting menu selections, which makes them *much* harder to use with keyboard selection.  Quick Explorer detects Obsidian's dark mode and tries to improve selection contrast in that case, but you may need to make sure dark *mode* is switched on for that to work.  You might also contact the theme developer and ask them to improve their menu selection styling, since the contrast issue will also affect you using the keyboard for any other popup menus in Obsidian!
+Quick Explorer was initially written using the same color variables as Obsidian itself does for menus.  Unfortunately, the vast majority of themes do not set these variables in such a way as to provide adequate contrast for the menu selection in dark mode, and some do not do so in light mode, either.  (This is probably because selection contrast in menus isn't terribly important if you have to use the mouse cursor anyway, but it makes keyboard navigation impossible.)
+
+To work around this, Quick Explorer now uses the color variables Obsidian uses to highlight selected mode buttons, which provides adequate contrast on most themes in both dark and light mode, but may be too bright or vivid in some themes.  There is unfortunately no easy way to make this perfect for everybody, without basically getting all the theme developers to fix their menu color sets for base Obsidian, at which point Quick Explorer could be changed back to using the same variables as Obsidian does.
+
+Another compatibility issue: some themes attempt to hide or downplay title bar items, making Quick Explorer's UI invisible.   Others (or CSS snippets) may color the titlebar in such a way that it becomes unreadable.  There is not really anything that Quick Explorer can do to fix these issues, so you may need to add your own CSS snippet workarounds or ask your theme's developer to make adjustments.
 
 ### Current Limitations
 
