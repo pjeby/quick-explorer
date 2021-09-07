@@ -19,7 +19,8 @@
       opacity: 1; }
 
 .qe-popup-menu .menu-item:not(.is-disabled):not(.is-label) {
-  display: flex; }
+  display: flex;
+  align-items: center; }
   .qe-popup-menu .menu-item:not(.is-disabled):not(.is-label).selected {
     background-color: var(--interactive-accent-hover); }
   .qe-popup-menu .menu-item:not(.is-disabled):not(.is-label):hover:not(.selected) {
@@ -27,7 +28,6 @@
   .qe-popup-menu .menu-item:not(.is-disabled):not(.is-label) .menu-item-title {
     flex-grow: 1; }
   .qe-popup-menu .menu-item:not(.is-disabled):not(.is-label) .nav-file-tag {
-    margin-top: 5px;
     margin-left: 1.5em;
     opacity: 0.4;
     background-color: transparent; }

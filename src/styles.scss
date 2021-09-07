@@ -28,6 +28,7 @@
 
 .qe-popup-menu .menu-item:not(.is-disabled):not(.is-label) {
     display: flex;
+    align-items: center;    // vertically center icon, filename, and extension
     &.selected {
         background-color: var(--interactive-accent-hover);
     }
@@ -39,7 +40,6 @@
     .menu-item-title { flex-grow: 1; }
 
     .nav-file-tag {
-        margin-top: 5px;     // visually centered vertically
         margin-left: 1.5em;  // minimum distance from title
         opacity: 0.4;        // prevent distraction
         background-color: transparent;

@@ -61,7 +61,7 @@ Quick Explorer was initially written using the same color variables as Obsidian 
 
 To work around this, Quick Explorer now uses the color variables Obsidian uses to highlight selected mode buttons, which provides adequate contrast on most themes in both dark and light mode, but may be too bright or vivid in some themes.  There is unfortunately no easy way to make this perfect for everybody, without basically getting all the theme developers to fix their menu color sets for base Obsidian, at which point Quick Explorer could be changed back to using the same variables as Obsidian does.
 
-Another compatibility issue: some themes attempt to hide or downplay title bar items, making Quick Explorer's UI invisible.   Others (or CSS snippets) may color the titlebar in such a way that it becomes unreadable.  There is not really anything that Quick Explorer can do to fix these issues, so you may need to add your own CSS snippet workarounds or ask your theme's developer to make adjustments.
+Another compatibility issue: some themes attempt to hide or downplay title bar items, making Quick Explorer's UI invisible.  Others (or CSS snippets) may color the titlebar in such a way that it becomes unreadable.  There is not really anything that Quick Explorer can do to fix these issues, so you may need to add your own CSS snippet workarounds or ask your theme's developer to make adjustments.
 
 ### Current Limitations
 
