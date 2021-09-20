@@ -24,12 +24,15 @@
   .qe-popup-menu .menu-item:not(.is-disabled):not(.is-label).selected {
     background-color: var(--interactive-accent-hover); }
   .qe-popup-menu .menu-item:not(.is-disabled):not(.is-label):hover:not(.selected) {
-    background-color: var(--background-primary); }
+    background-color: var(--background-primary);
+    color: var(--text-normal); }
+    .qe-popup-menu .menu-item:not(.is-disabled):not(.is-label):hover:not(.selected) .menu-item-icon {
+      color: var(--text-muted); }
   .qe-popup-menu .menu-item:not(.is-disabled):not(.is-label) .menu-item-title {
     flex-grow: 1; }
   .qe-popup-menu .menu-item:not(.is-disabled):not(.is-label) .nav-file-tag {
     margin-left: 1.5em;
-    opacity: 0.4;
+    opacity: 0.5;
     background-color: transparent; }
   .qe-popup-menu .menu-item:not(.is-disabled):not(.is-label):hover, .qe-popup-menu .menu-item:not(.is-disabled):not(.is-label).selected {
     color: var(--text-on-accent); }

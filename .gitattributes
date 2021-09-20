@@ -1,1 +1,3 @@
 main.js binary
+*.zip binary
+.yarn/releases/* binary

@@ -36,14 +36,6 @@ const viewtypeIcons: Record<string, string> = {
 };
 
 
-function fileIcon(app: App, file: TAbstractFile) {
-    if (file instanceof TFolder) return "folder";
-    if (file instanceof TFile) {
-        const viewType = app.viewRegistry.getTypeByExtension(file.extension);
-        if (viewType) return viewtypeIcons[viewType] ?? "document";
-    }
-}
-
 // Global auto preview mode
 let autoPreview = false
 
@@ -99,6 +91,7 @@ export class FolderMenu extends PopupMenu {
         const preview = this.hoverPopover?.hoverEl.find(".markdown-preview-view");
         if (preview) {
             preview.style.scrollBehavior = toEnd ? "auto": "smooth";
+            const oldTop = preview.scrollTop;
             const newTop = (toEnd ? 0 : preview.scrollTop) + direction * (toEnd ? preview.scrollHeight : preview.clientHeight);
             preview.scrollTop = newTop;
             if (!toEnd) {
@@ -106,7 +99,7 @@ export class FolderMenu extends PopupMenu {
                 if (newTop >= preview.scrollHeight) {
                     this.onArrowDown(event);
                 } else if (newTop < 0) {
-                    this.onArrowUp(event);
+                    if (oldTop > 0) preview.scrollTop = 0; else this.onArrowUp(event);
                 }
             }
         } else {
@@ -172,7 +165,7 @@ export class FolderMenu extends PopupMenu {
         const {children, parent} = folder;
         const items = children.slice().sort((a: TAbstractFile, b: TAbstractFile) => alphaSort(a.name, b.name))
         const folders = items.filter(f => f instanceof TFolder) as TFolder[];
-        const files   = items.filter(f => f instanceof TFile && (allFiles || fileIcon(this.app, f))) as TFile[];
+        const files   = items.filter(f => f instanceof TFile && (allFiles || this.fileIcon(f))) as TFile[];
         folders.sort((a, b) => alphaSort(a.name, b.name));
         files.sort((a, b) => alphaSort(a.basename, b.basename));
         if (parent) folders.unshift(parent);
@@ -182,16 +175,32 @@ export class FolderMenu extends PopupMenu {
         if (selectedFile) this.select(this.itemForPath(selectedFile.path)); else this.selected = -1;
     }
 
+    fileIcon(file: TAbstractFile) {
+        if (file instanceof TFolder) return "folder";
+        if (file instanceof TFile) {
+            const viewType = this.app.viewRegistry.getTypeByExtension(file.extension);
+            if (viewType) return viewtypeIcons[viewType] ?? "document";
+        }
+    }
+
+    fileCount: (file: TAbstractFile) => number = (file: TAbstractFile) => (
+        file instanceof TFolder ? file.children.map(this.fileCount).reduce((a,b) => a+b, 0) : (this.fileIcon(file) ? 1 : 0)
+    )
+
     addFile(file: TAbstractFile) {
-        const icon = fileIcon(this.app, file);
+        const icon = this.fileIcon(file);
         this.addItem(i => {
             i.setTitle((file === this.folder.parent) ? ".." : file.name);
             i.dom.dataset.filePath = file.path;
             i.dom.setAttr("draggable", "true");
+            i.dom.addClass (file instanceof TFolder ? "is-qe-folder" : "is-qe-file");
             if (icon) i.setIcon(icon);
             if (file instanceof TFile) {
                 i.setTitle(file.basename);
-                if (file.extension !== "md") i.dom.createDiv({text: file.extension, cls: "nav-file-tag"});
+                if (file.extension !== "md") i.dom.createDiv({text: file.extension, cls: ["nav-file-tag","extension"]});
+            } else if (file !== this.folder.parent) {
+                const count = this.fileCount(file);
+                if (count) i.dom.createDiv({text: ""+count, cls: "nav-file-tag file-count"});
             }
             i.onClick(e => this.onClickFile(file, i.dom, e))
         });

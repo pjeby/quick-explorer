@@ -34,6 +34,8 @@
     }
     &:hover:not(.selected) {
         background-color: var(--background-primary);
+        color: var(--text-normal);
+        .menu-item-icon { color: var(--text-muted); }
     }
 
     // Expand the title so the extension tag will be right-aligned
@@ -41,7 +43,7 @@
 
     .nav-file-tag {
         margin-left: 1.5em;  // minimum distance from title
-        opacity: 0.4;        // prevent distraction
+        opacity: 0.5;        // prevent distraction
         background-color: transparent;
     }
 
