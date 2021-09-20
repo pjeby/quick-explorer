@@ -197,10 +197,10 @@ export class FolderMenu extends PopupMenu {
             if (icon) i.setIcon(icon);
             if (file instanceof TFile) {
                 i.setTitle(file.basename);
-                if (file.extension !== "md") i.dom.createDiv({text: file.extension, cls: ["nav-file-tag","extension"]});
+                if (file.extension !== "md") i.dom.createDiv({text: file.extension, cls: ["nav-file-tag","qe-extension"]});
             } else if (file !== this.folder.parent) {
                 const count = this.fileCount(file);
-                if (count) i.dom.createDiv({text: ""+count, cls: "nav-file-tag file-count"});
+                if (count) i.dom.createDiv({text: ""+count, cls: "nav-file-tag qe-file-count"});
             }
             i.onClick(e => this.onClickFile(file, i.dom, e))
         });

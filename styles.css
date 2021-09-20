@@ -34,6 +34,8 @@
     margin-left: 1.5em;
     opacity: 0.5;
     background-color: transparent; }
+    .qe-popup-menu .menu-item:not(.is-disabled):not(.is-label) .nav-file-tag.qe-file-count {
+      font-size: 75%; }
   .qe-popup-menu .menu-item:not(.is-disabled):not(.is-label):hover, .qe-popup-menu .menu-item:not(.is-disabled):not(.is-label).selected {
     color: var(--text-on-accent); }
     .qe-popup-menu .menu-item:not(.is-disabled):not(.is-label):hover .menu-item-icon, .qe-popup-menu .menu-item:not(.is-disabled):not(.is-label).selected .menu-item-icon {

@@ -45,6 +45,9 @@
         margin-left: 1.5em;  // minimum distance from title
         opacity: 0.5;        // prevent distraction
         background-color: transparent;
+        &.qe-file-count {
+            font-size: 75%;
+        }
     }
 
     &:hover, &.selected {
