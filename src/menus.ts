@@ -36,6 +36,7 @@ export class PopupMenu extends Menu {
     match: string = ""
     resetSearchOnTimeout = debounce(() => {this.match = "";}, 1500, true)
     visible: boolean = false
+    firstMove: boolean = false
 
     constructor(public parent: MenuParent) {
         super(parent instanceof App ? parent : parent.app);
@@ -70,11 +71,14 @@ export class PopupMenu extends Menu {
         this.scope.register(null, null, this.onKeyDown.bind(this));
         super.onload();
         this.visible = true;
+        this.showSelected();
+        this.firstMove = true;
         // We wait until now to register so that any initial mouseover of the old mouse position will be skipped
         this.register(onElement(this.dom, "mouseover", ".menu-item", (event: MouseEvent, target: HTMLDivElement) => {
-            if (mouseMoved(event) && !target.hasClass("is-disabled") && !this.child) {
+            if (!this.firstMove && !target.hasClass("is-disabled") && !this.child) {
                 this.select(this.items.findIndex(i => i.dom === target), false);
             }
+            this.firstMove = false;
         }));
     }
 
@@ -137,8 +141,12 @@ export class PopupMenu extends Menu {
     select(n: number, scroll = true) {
         this.match = "" // reset search on move
         super.select(n);
-        if (scroll)  {
-            const el = this.items[this.selected].dom;
+        if (scroll) this.showSelected();
+    }
+
+    showSelected() {
+        const el = this.items[this.selected]?.dom;
+        if (el) {
             const me = this.dom.getBoundingClientRect(), my = el.getBoundingClientRect();
             if (my.top < me.top || my.bottom > me.bottom) el.scrollIntoView();
         }
@@ -217,7 +225,6 @@ export class PopupMenu extends Menu {
         }
 
         // Done!  Show our work.
-        if (event instanceof MouseEvent) mouseMoved(event);
         this.showAtPosition(point);
 
         // Flag the clicked item as active, until we close
@@ -232,17 +239,6 @@ export class PopupMenu extends Menu {
 
 function escapeRegex(s: string) {
     return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-let oldX = 0, oldY = 0
-
-function mouseMoved({clientX, clientY}: {clientX: number, clientY: number}) {
-    if ( Math.abs(oldX-clientX) || Math.abs(oldY-clientY) ) {
-        oldX = clientX;
-        oldY = clientY;
-        return true;
-    }
-    return false;
 }
 
 function onElement<K extends keyof HTMLElementEventMap>(

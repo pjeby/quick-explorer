@@ -103,8 +103,9 @@ export class FolderMenu extends PopupMenu {
                 }
             }
         } else {
+            if (!autoPreview) { autoPreview = true; this.showPopover(); }
             // No preview, just go to next or previous item
-            if (direction > 0) this.onArrowDown(event); else this.onArrowUp(event);
+            else if (direction > 0) this.onArrowDown(event); else this.onArrowUp(event);
         }
     }
 
