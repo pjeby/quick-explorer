@@ -37,7 +37,7 @@ const viewtypeIcons: Record<string, string> = {
 
 
 // Global auto preview mode
-let autoPreview = false
+let autoPreview = true
 
 export class FolderMenu extends PopupMenu {
 
@@ -78,13 +78,16 @@ export class FolderMenu extends PopupMenu {
         this.register(() => { autoPreview && this.parent instanceof FolderMenu && this.parent.showPopover(); })
     }
 
-    onArrowLeft(): boolean | undefined {
-        return super.onArrowLeft() ?? this.openBreadcrumb(this.opener?.previousElementSibling);
+    onArrowLeft() {
+        super.onArrowLeft();
+        if (this.rootMenu() === this) this.openBreadcrumb(this.opener?.previousElementSibling);
+        return false;
     }
 
     onKeyboardContextMenu() {
         const target = this.items[this.selected]?.dom, file = target && this.fileForDom(target);
         if (file) new ContextMenu(this, file).cascade(target);
+        return false;
     }
 
     doScroll(direction: number, toEnd: boolean, event: KeyboardEvent) {
@@ -107,22 +110,25 @@ export class FolderMenu extends PopupMenu {
             // No preview, just go to next or previous item
             else if (direction > 0) this.onArrowDown(event); else this.onArrowUp(event);
         }
+        return false;
     }
 
     doRename() {
         const file = this.currentFile()
         if (file) this.app.fileManager.promptForFileRename(file);
+        return false;
     }
 
     doMove() {
         const explorerPlugin = this.app.internalPlugins.plugins["file-explorer"];
         if (!explorerPlugin.enabled) {
             new Notice("File explorer core plugin must be enabled to move files or folders");
-            return;
+            return false;
         }
         const modal = explorerPlugin.instance.moveFileModal;
         modal.setCurrentFile(this.currentFile());
         modal.open()
+        return false;
     }
 
     currentItem() {
@@ -161,19 +167,27 @@ export class FolderMenu extends PopupMenu {
     }
 
     loadFiles(folder: TFolder, selectedFile?: TAbstractFile) {
+        const folderNote = this.folderNote(this.folder);
         this.dom.empty(); this.items = [];
         const allFiles = this.app.vault.getConfig("showUnsupportedFiles");
         const {children, parent} = folder;
         const items = children.slice().sort((a: TAbstractFile, b: TAbstractFile) => alphaSort(a.name, b.name))
         const folders = items.filter(f => f instanceof TFolder) as TFolder[];
-        const files   = items.filter(f => f instanceof TFile && (allFiles || this.fileIcon(f))) as TFile[];
+        const files   = items.filter(f => f instanceof TFile && f !== folderNote && (allFiles || this.fileIcon(f))) as TFile[];
         folders.sort((a, b) => alphaSort(a.name, b.name));
         files.sort((a, b) => alphaSort(a.basename, b.basename));
-        if (parent) folders.unshift(parent);
-        folders.map(this.addFile, this);
-        if (folders.length && files.length) this.addSeparator();
-        files.map(  this.addFile, this);
-        if (selectedFile) this.select(this.itemForPath(selectedFile.path)); else this.selected = -1;
+        if (folderNote) {
+            this.addFile(folderNote);
+        }
+        if (folders.length) {
+            if (folderNote) this.addSeparator();
+            folders.map(this.addFile, this);
+        }
+        if (files.length) {
+            if (folders.length || folderNote) this.addSeparator();
+            files.map(this.addFile, this);
+        }
+        this.select(selectedFile ? this.itemForPath(selectedFile.path) : 0);
     }
 
     fileIcon(file: TAbstractFile) {
@@ -191,7 +205,7 @@ export class FolderMenu extends PopupMenu {
     addFile(file: TAbstractFile) {
         const icon = this.fileIcon(file);
         this.addItem(i => {
-            i.setTitle((file === this.folder.parent) ? ".." : file.name);
+            i.setTitle(file.name);
             i.dom.dataset.filePath = file.path;
             i.dom.setAttr("draggable", "true");
             i.dom.addClass (file instanceof TFolder ? "is-qe-folder" : "is-qe-file");
@@ -209,6 +223,7 @@ export class FolderMenu extends PopupMenu {
 
     togglePreviewMode() {
         if (autoPreview = !autoPreview) this.showPopover(); else this.hidePopover();
+        return false;
     }
 
     onload() {
@@ -241,6 +256,7 @@ export class FolderMenu extends PopupMenu {
     onEscape() {
         super.onEscape();
         if (this.parent instanceof PopupMenu) this.parent.onEscape();
+        return false;
     }
 
     hide() {
@@ -353,18 +369,12 @@ export class FolderMenu extends PopupMenu {
                 new Notice(`.${file.extension} files cannot be opened in Obsidian; Use "Open in Default App" to open them externally`);
                 // fall through
             }
-        } else if (file === this.parentFolder) {
-            // We're a child menu and selected "..": just return to previous menu
-            this.hide();
-        } else if (file === this.folder.parent) {
-            // Not a child menu, but selected "..": go to previous breadcrumb
-            this.onArrowLeft();
         } else if (file === this.selectedFile) {
             // Targeting the initially-selected subfolder: go to next breadcrumb
             this.openBreadcrumb(this.opener?.nextElementSibling);
         } else {
             // Otherwise, pop a new menu for the subfolder
-            const folderMenu = new FolderMenu(this, file as TFolder, this.folderNote(file as TFolder) || this.folder);
+            const folderMenu = new FolderMenu(this, file as TFolder, this.folderNote(file as TFolder));
             folderMenu.cascade(target, event instanceof MouseEvent ? event : undefined);
         }
     }

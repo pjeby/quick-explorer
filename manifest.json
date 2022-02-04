@@ -1,8 +1,8 @@
 {
   "id": "quick-explorer",
   "name": "Quick Explorer",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "description": "Perform file explorer operations (and see your current file path) from the title bar, using the mouse or keyboard",
-  "minAppVersion": "0.12.12",
+  "minAppVersion": "0.13.23",
   "isDesktopOnly": true
 }

@@ -65,6 +65,7 @@ export class PopupMenu extends Menu {
 
     onEscape() {
         this.hide();
+        return false;
     }
 
     onload() {
@@ -161,24 +162,26 @@ export class PopupMenu extends Menu {
         this.selected = this.items.length;
         this.onArrowUp(e);
         if (this.selected === this.items.length) this.selected = -1;
+        return false;
     }
 
     onHome(e: KeyboardEvent) {
         this.unselect();
         this.selected = -1;
         this.onArrowDown(e);
+        return false;
     }
 
-    onArrowLeft(): boolean | undefined {
+    onArrowLeft() {
         if (this.rootMenu() !== this) {
             this.hide();
-            return false;
         }
+        return false;
     }
 
     onArrowRight(): boolean | undefined {
         // no-op in base class
-        return;
+        return false;
     }
 
     hide() {
