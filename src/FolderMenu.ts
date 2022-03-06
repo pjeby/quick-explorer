@@ -2,6 +2,7 @@ import { TAbstractFile, TFile, TFolder, Keymap, Notice, App, Menu, HoverParent, 
 import { hoverSource, startDrag } from "./Explorer";
 import { PopupMenu, MenuParent } from "./menus";
 import { ContextMenu } from "./ContextMenu";
+import { around } from "monkey-around";
 
 declare module "obsidian" {
     interface HoverPopover {
@@ -76,6 +77,14 @@ export class FolderMenu extends PopupMenu {
 
         // When we unload, reactivate parent menu's hover, if needed
         this.register(() => { autoPreview && this.parent instanceof FolderMenu && this.parent.showPopover(); })
+
+        // Make obsidian.Menu think mousedowns on our popups are happening
+        // on us, so we won't close before an actual click occurs
+        const menu = this;
+        around(this.dom, {contains(prev){ return function(target: Node) {
+            const ret = prev.call(this, target) || menu._popover.hoverEl.contains(target);
+            return ret;
+        }}});
     }
 
     onArrowLeft() {
