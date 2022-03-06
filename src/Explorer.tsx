@@ -21,12 +21,14 @@ export function startDrag(app: App, path: string, event: DragEvent) {
 }
 
 class Explorable {
-    el: HTMLSpanElement = <span draggable class="explorable titlebar-button" />
+    nameEl = <span class="explorable-name"/>;
+    sepEl = <span class="explorable-separator"/>;
+    el = <span draggable class="explorable titlebar-button">{this.nameEl}{this.sepEl}</span>;
     update(data: {file: TAbstractFile, path: string}, index: number, items: any[]) {
         const {file, path} = data;
         let name = file.name || path;
-        if (index < items.length-1) name += "\u00A0/\u00A0";
-        this.el.textContent = name;
+        this.sepEl.toggle(index < items.length-1);
+        this.nameEl.textContent = name;
         this.el.dataset.parentPath = file.parent?.path ?? "/";
         this.el.dataset.filePath = path;
     }

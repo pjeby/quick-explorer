@@ -5,6 +5,6 @@ declare global {
             [elemName: string]: any;
         }
         export type ElementClass = RedomComponent
-        //export type Element = RedomElement | HTMLElement
+        export type Element = HTMLElement
     }
 }

@@ -24,6 +24,9 @@
             opacity: 1;
         }
     }
+    .explorable-separator::before {
+        content: "\00a0/\00a0"
+    }
 }
 
 .qe-popup-menu .menu-item:not(.is-disabled):not(.is-label) {
