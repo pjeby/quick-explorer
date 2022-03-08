@@ -14,9 +14,8 @@ declare module "obsidian" {
         onArrowUp(e: KeyboardEvent): false
     }
 
-    export const Keymap: {
-        isModifier(event: Event, modifier: string): boolean
-        getModifiers(event: Event): string
+    export namespace Keymap {
+        export function getModifiers(event: Event): string
     }
 
     interface MenuItem {
