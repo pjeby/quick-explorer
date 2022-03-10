@@ -235,8 +235,13 @@ export class FolderMenu extends PopupMenu {
         return false;
     }
 
+    refreshFiles = debounce(() => this.loadFiles(this.folder, this.currentFile()), 100, true);
+
     onload() {
         super.onload();
+        this.registerEvent(this.app.vault.on("create", (file) => {
+            if (this.folder === file.parent) this.refreshFiles();
+        }));
         this.registerEvent(this.app.vault.on("rename", (file, oldPath) => {
             if (this.folder === file.parent) {
                 // Destination was here; refresh the list
