@@ -197,7 +197,7 @@ export class PopupMenu extends Menu {
         return this.parent instanceof App ? this : this.parent.rootMenu();
     }
 
-    cascade(target: HTMLElement, event?: MouseEvent,  hOverlap = 15, vOverlap = 5) {
+    cascade(target: HTMLElement, event?: MouseEvent, onClose?: () => any, hOverlap = 15, vOverlap = 5) {
         const {left, right, top, bottom, width} = target.getBoundingClientRect();
         const centerX = left+Math.min(150, width/3), centerY = (top+bottom)/2;
         const {innerHeight, innerWidth} = window;
@@ -234,6 +234,7 @@ export class PopupMenu extends Menu {
         this.onHide(() => {
             if (this.parent instanceof App) target.toggleClass("selected", false);
             else if (this.parent instanceof PopupMenu) this.parent.setChildMenu();
+            if (onClose) onClose();
         });
         return this;
     }
