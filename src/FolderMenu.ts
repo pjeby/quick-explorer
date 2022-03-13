@@ -82,7 +82,7 @@ export class FolderMenu extends PopupMenu {
         // on us, so we won't close before an actual click occurs
         const menu = this;
         around(this.dom, {contains(prev){ return function(target: Node) {
-            const ret = prev.call(this, target) || menu._popover.hoverEl.contains(target);
+            const ret = prev.call(this, target) || menu._popover?.hoverEl.contains(target);
             return ret;
         }}});
     }
@@ -160,19 +160,21 @@ export class FolderMenu extends PopupMenu {
     openBreadcrumb(element: Element) {
         if (element && this.rootMenu() === this) {
             const prevExplorable = this.opener.previousElementSibling;
-            this.hide();
             (element as HTMLDivElement).click()
             return false;
         }
     }
 
-    onArrowRight(): boolean | undefined {
+    onArrowRight() {
         const file = this.currentFile();
-        if (file instanceof TFolder && file !== this.selectedFile) {
-            this.onClickFile(file, this.currentItem().dom);
-            return false;
+        if (file instanceof TFolder) {
+            if (file !== this.selectedFile) {
+                this.onClickFile(file, this.currentItem().dom);
+            } else {
+                this.openBreadcrumb(this.opener?.nextElementSibling);
+            }
         }
-        return this.openBreadcrumb(this.opener?.nextElementSibling);
+        return false;
     }
 
     loadFiles(folder: TFolder, selectedFile?: TAbstractFile) {
