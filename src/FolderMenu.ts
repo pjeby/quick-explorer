@@ -61,11 +61,6 @@ export class FolderMenu extends PopupMenu {
         this.scope.register(["Mod"],     "End", this.doScroll.bind(this,  1, true));
 
         const { dom } = this;
-        dom.style.setProperty(
-            // Allow popovers (hover preview) to overlay this menu
-            "--layer-menu", "" + (parseInt(getComputedStyle(document.body).getPropertyValue("--layer-popover")) - 1)
-        );
-
         const menuItem = ".menu-item[data-file-path]";
         dom.on("click",       menuItem, this.onItemClick, true);
         dom.on("contextmenu", menuItem, this.onItemMenu );
