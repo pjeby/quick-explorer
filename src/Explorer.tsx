@@ -1,4 +1,4 @@
-import { App, TAbstractFile, TFile, TFolder } from "obsidian";
+import { App, Component, TAbstractFile, TFile, TFolder } from "obsidian";
 import { list, el } from "redom";
 import { ContextMenu } from "./ContextMenu";
 import { FolderMenu } from "./FolderMenu";
@@ -34,24 +34,42 @@ class Explorable {
     }
 }
 
-export class Explorer {
+export class Explorer extends Component {
     lastFile: TAbstractFile = null;
     lastPath: string = null;
     el: HTMLElement = <div id="quick-explorer" />;
     list = list(this.el, Explorable);
 
     constructor(public app: App) {
+        super()
+    }
+
+    onload() {
+        this.update(this.app.workspace.getActiveFile());
+        this.registerEvent(this.app.workspace.on("file-open", this.update, this));
+        this.registerEvent(this.app.workspace.on("active-leaf-change", () => this.update(this.app.workspace.getActiveFile())));
+        this.registerEvent(this.app.vault.on("rename", this.onFileChange, this));
+        this.registerEvent(this.app.vault.on("delete", this.onFileDelete, this));
+
         this.el.on("contextmenu", ".explorable", (event, target) => {
             const { filePath } = target.dataset;
-            const file = app.vault.getAbstractFileByPath(filePath);
-            new ContextMenu(app, file).cascade(target, event);
+            const file = this.app.vault.getAbstractFileByPath(filePath);
+            new ContextMenu(this.app, file).cascade(target, event);
         });
         this.el.on("click", ".explorable", (event, target) => {
             this.folderMenu(target, event.isTrusted && event);
         });
         this.el.on('dragstart', ".explorable", (event, target) => {
-            startDrag(app, target.dataset.filePath, event);
+            startDrag(this.app, target.dataset.filePath, event);
         });
+    }
+
+    onFileChange(file: TAbstractFile) {
+        if (file === this.lastFile) this.update(file);
+    }
+
+    onFileDelete(file: TAbstractFile) {
+        if (file === this.lastFile) this.update();
     }
 
     folderMenu(opener: HTMLElement = this.el.firstElementChild as HTMLElement, event?: MouseEvent) {
@@ -97,7 +115,7 @@ export class Explorer {
         return menu;
     }
 
-    update(file: TAbstractFile) {
+    update(file?: TAbstractFile) {
         file ??= this.app.vault.getAbstractFileByPath("/");
         if (file == this.lastFile && file.path == this.lastPath) return;
         this.lastFile = file;

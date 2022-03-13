@@ -21,11 +21,9 @@ export default class extends Plugin {
             const buttonContainer = document.body.find(".titlebar .titlebar-button-container.mod-left");
             this.register(() => unmount(buttonContainer, this.explorer));
             mount(buttonContainer, this.explorer = new Explorer(this.app));
-            this.explorer.update(this.app.workspace.getActiveFile())
-            this.registerEvent(this.app.workspace.on("file-open", this.explorer.update, this.explorer));
-            this.registerEvent(this.app.vault.on("rename", this.onFileChange, this));
-            this.registerEvent(this.app.vault.on("delete", this.onFileChange, this));
+            this.addChild(this.explorer);
         });
+
         this.app.workspace.registerHoverLinkSource(hoverSource, {
             display: 'Quick Explorer', defaultMod: true
         });
@@ -55,7 +53,4 @@ export default class extends Plugin {
         this.app.workspace.unregisterHoverLinkSource(hoverSource);
     }
 
-    onFileChange(file: TAbstractFile) {
-        if (file === this.explorer.lastFile) this.explorer.update(file);
-    }
 }
