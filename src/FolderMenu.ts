@@ -8,6 +8,7 @@ declare module "obsidian" {
     interface HoverPopover {
         hide(): void
         hoverEl: HTMLDivElement
+        onHover: boolean
     }
     interface App {
         viewRegistry: {
@@ -290,7 +291,7 @@ export class FolderMenu extends PopupMenu {
     }
 
     hidePopover() {
-        this.hoverPopover?.hide();
+        this.hoverPopover = null;
     }
 
     canShowPopover() {
@@ -332,7 +333,15 @@ export class FolderMenu extends PopupMenu {
     get hoverPopover() { return this._popover; }
 
     set hoverPopover(popover) {
-        if (popover && !this.canShowPopover()) { popover.hide(); return; }
+        if (this._popover && popover !== this._popover) {
+            this._popover.onHover = false;   // Force unpinned Hover Editors to close
+            this._popover.hide();
+        }
+        if (popover && !this.canShowPopover()) {
+            popover.onHover = false;   // Force unpinned Hover Editors to close
+            popover.hide();
+            popover = null;
+        }
         this._popover = popover;
         if (autoPreview && popover && this.currentItem()) {
             // Position the popover so it doesn't overlap the menu horizontally (as long as it fits)
