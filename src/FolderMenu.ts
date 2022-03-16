@@ -364,9 +364,11 @@ export class FolderMenu extends PopupMenu implements HoverParent {
     get hoverPopover() { return this._popover; }
 
     set hoverPopover(popover) {
-        if (this._popover && popover !== this._popover) {
-            this._popover.onHover = false;   // Force unpinned Hover Editors to close
-            this._popover.hide();
+        const old = this._popover;
+        if (old && popover !== old) {
+            this._popover = null;
+            old.onHover = false;   // Force unpinned Hover Editors to close
+            old.hide();
         }
         if (popover && !this.canShowPopover()) {
             popover.onHover = false;   // Force unpinned Hover Editors to close
