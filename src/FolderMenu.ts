@@ -1,4 +1,4 @@
-import { TAbstractFile, TFile, TFolder, Keymap, Notice, App, Menu, HoverParent, debounce, MenuItem } from "obsidian";
+import { TAbstractFile, TFile, TFolder, Keymap, Notice, HoverParent, debounce, WorkspaceSplit, HoverPopover, FileView, MarkdownView } from "obsidian";
 import { hoverSource, startDrag } from "./Explorer";
 import { PopupMenu, MenuParent } from "./menus";
 import { ContextMenu } from "./ContextMenu";
@@ -20,6 +20,14 @@ declare module "obsidian" {
         getConfig(option: string): any
         getConfig(option:"showUnsupportedFiles"): boolean
     }
+    interface Workspace {
+        iterateLeaves(callback: (item: WorkspaceLeaf) => any, item: WorkspaceParent): boolean;
+    }
+}
+
+interface HoverEditor extends HoverPopover {
+    rootSplit: WorkspaceSplit;
+    togglePin(pinned?: boolean): void;
 }
 
 const alphaSort = new Intl.Collator(undefined, {usage: "sort", sensitivity: "base", numeric: true}).compare;
@@ -41,7 +49,7 @@ const viewtypeIcons: Record<string, string> = {
 // Global auto preview mode
 let autoPreview = true
 
-export class FolderMenu extends PopupMenu {
+export class FolderMenu extends PopupMenu implements HoverParent {
 
     parentFolder: TFolder = this.parent instanceof FolderMenu ? this.parent.folder : null;
 
@@ -168,6 +176,29 @@ export class FolderMenu extends PopupMenu {
                 this.onClickFile(file, this.currentItem().dom);
             } else {
                 this.openBreadcrumb(this.opener?.nextElementSibling);
+            }
+        } else if (file instanceof TFile) {
+            const pop = this.hoverPopover;
+            if (pop && pop.rootSplit) {
+                this.app.workspace.iterateLeaves(leaf => {
+                    if (leaf.view instanceof FileView && leaf.view.file === file) {
+                        pop.togglePin(true);  // Ensure the popup won't close
+                        this.onEscape();      // when we close
+                        if (leaf.view instanceof MarkdownView) {
+                            // Switch to edit mode -- keyboard's not much good without it!
+                            leaf.setViewState({
+                                type: leaf.view.getViewType(),
+                                state: { file: file.path, mode: "source"}
+                            }).then(() => this.app.workspace.setActiveLeaf(leaf, false, true));
+                        } else {
+                            // Something like Kanban or Excalidraw, might not support focus flag,
+                            // so make sure the current pane doesn't hang onto it
+                            (document.activeElement as HTMLElement)?.blur();
+                            this.app.workspace.setActiveLeaf(leaf, false, true);
+                        }
+                    }
+                    return true;  // only target the first leaf, whether it matches or not
+                }, pop.rootSplit)
             }
         }
         return false;
@@ -328,7 +359,7 @@ export class FolderMenu extends PopupMenu {
     }
 
 
-    _popover: HoverParent["hoverPopover"];
+    _popover: HoverEditor;
 
     get hoverPopover() { return this._popover; }
 
@@ -344,6 +375,10 @@ export class FolderMenu extends PopupMenu {
         }
         this._popover = popover;
         if (autoPreview && popover && this.currentItem()) {
+            // Override auto-pinning if we are generating auto-previews, to avoid
+            // generating huge numbers of popovers
+            popover.togglePin?.(false);
+
             // Position the popover so it doesn't overlap the menu horizontally (as long as it fits)
             // and so that its vertical position overlaps the selected menu item (placing the top a
             // bit above the current item, unless it would go off the bottom of the screen)
