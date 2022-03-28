@@ -37,8 +37,8 @@ export class PopupMenu extends Menu {
     visible: boolean = false
     firstMove: boolean = false
 
-    constructor(public parent: MenuParent) {
-        super(parent instanceof App ? parent : parent.app);
+    constructor(public parent: MenuParent, public app: App = parent instanceof App ? parent : parent.app) {
+        super(app);
         if (parent instanceof PopupMenu) parent.setChildMenu(this);
 
         this.scope = new Scope;
