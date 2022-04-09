@@ -39,6 +39,7 @@ export class Explorer extends Component {
     lastPath: string = null;
     el: HTMLElement = <div id="quick-explorer" />;
     list = list(this.el, Explorable);
+    isOpen = 0
 
     constructor(public app: App) {
         super()
@@ -76,7 +77,11 @@ export class Explorer extends Component {
         const { filePath, parentPath } = opener.dataset
         const selected = this.app.vault.getAbstractFileByPath(filePath);
         const folder = this.app.vault.getAbstractFileByPath(parentPath) as TFolder;
-        return new FolderMenu(this.app, folder, selected, opener).cascade(opener, event);
+        this.isOpen++;
+        return new FolderMenu(this.app, folder, selected, opener).cascade(opener, event, () => {
+            this.isOpen--;
+            if (!this.isOpen) this.update(this.app.workspace.getActiveFile());
+        });
     }
 
     browseVault() {
@@ -88,7 +93,7 @@ export class Explorer extends Component {
     }
 
     browseFile(file: TAbstractFile) {
-        if (file === this.app.workspace.getActiveFile()) return this.browseCurrent();
+        if (file === this.lastFile) return this.browseCurrent();
         let menu: FolderMenu;
         let opener: HTMLElement = this.el.firstElementChild as HTMLElement;
         const path = [], parts = file.path.split("/").filter(p=>p);
@@ -116,6 +121,7 @@ export class Explorer extends Component {
     }
 
     update(file?: TAbstractFile) {
+        if (this.isOpen) return;
         file ??= this.app.vault.getAbstractFileByPath("/");
         if (file == this.lastFile && file.path == this.lastPath) return;
         this.lastFile = file;
