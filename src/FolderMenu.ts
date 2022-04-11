@@ -9,6 +9,7 @@ declare module "obsidian" {
         hide(): void
         hoverEl: HTMLDivElement
         onHover: boolean
+        isPinned?: boolean
     }
     interface App {
         viewRegistry: {
@@ -368,7 +369,7 @@ export class FolderMenu extends PopupMenu implements HoverParent {
         if (old && popover !== old) {
             this._popover = null;
             old.onHover = false;   // Force unpinned Hover Editors to close
-            old.hide();
+            if (!old.isPinned) old.hide();
         }
         if (popover && !this.canShowPopover()) {
             popover.onHover = false;   // Force unpinned Hover Editors to close
