@@ -105,7 +105,12 @@ export class FolderMenu extends PopupMenu implements HoverParent {
     }
 
     doScroll(direction: number, toEnd: boolean, event: KeyboardEvent) {
-        const preview = this.hoverPopover?.hoverEl.find(".markdown-preview-view, .cm-scroller");
+        const hoverEl = this.hoverPopover?.hoverEl;
+        const preview = hoverEl?.find(
+            this.hoverPopover?.rootSplit ?
+                '[data-mode="preview"] .markdown-preview-view, [data-mode="source"] .cm-scroller' :
+                '.markdown-preview-view'
+        );
         if (preview) {
             preview.style.scrollBehavior = toEnd ? "auto": "smooth";
             const oldTop = preview.scrollTop;
