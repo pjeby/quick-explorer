@@ -1,4 +1,4 @@
-import { TAbstractFile, TFile, TFolder, Keymap, Notice, HoverParent, debounce, WorkspaceSplit, HoverPopover, FileView, MarkdownView } from "obsidian";
+import { TAbstractFile, TFile, TFolder, Keymap, Notice, HoverParent, debounce, WorkspaceSplit, HoverPopover, FileView, MarkdownView, Component } from "obsidian";
 import { hoverSource, startDrag } from "./Explorer";
 import { PopupMenu, MenuParent } from "./menus";
 import { ContextMenu } from "./ContextMenu";
@@ -10,6 +10,7 @@ declare module "obsidian" {
         hoverEl: HTMLDivElement
         onHover: boolean
         isPinned?: boolean
+        abortController?: Component
     }
     interface App {
         viewRegistry: {
@@ -386,6 +387,9 @@ export class FolderMenu extends PopupMenu implements HoverParent {
             // Override auto-pinning if we are generating auto-previews, to avoid
             // generating huge numbers of popovers
             popover.togglePin?.(false);
+
+            // Ditch event handlers (Workaround for https://github.com/nothingislost/obsidian-hover-editor/issues/125)
+            Promise.resolve().then(() => popover.abortController?.unload?.());
 
             // Position the popover so it doesn't overlap the menu horizontally (as long as it fits)
             // and so that its vertical position overlaps the selected menu item (placing the top a
