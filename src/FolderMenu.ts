@@ -135,6 +135,7 @@ export class FolderMenu extends PopupMenu implements HoverParent {
 
     doRename() {
         const file = this.currentFile()
+        this.rootMenu().hide();
         if (file) this.app.fileManager.promptForFileRename(file);
         return false;
     }
@@ -145,6 +146,7 @@ export class FolderMenu extends PopupMenu implements HoverParent {
             new Notice("File explorer core plugin must be enabled to move files or folders");
             return false;
         }
+        this.rootMenu().hide();
         const modal = explorerPlugin.instance.moveFileModal;
         modal.setCurrentFile(this.currentFile());
         modal.open()

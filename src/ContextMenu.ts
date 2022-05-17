@@ -48,6 +48,7 @@ export class ContextMenu extends PopupMenu {
 
         if (file instanceof TFolder) {
             this.addItem(i => i.setTitle(optName("new-note")).setIcon("create-new").onClick(async e => {
+                this.rootMenu().hide();
                 const newFile = await this.app.fileManager.createNewMarkdownFile(file);
                 if (newFile) await this.app.workspace.getLeaf(Keymap.isModifier(e, "Mod")).openFile(newFile, {
                     active: !0, state: { mode: "source" }, eState: { rename: "all" }
@@ -55,6 +56,7 @@ export class ContextMenu extends PopupMenu {
             }));
             this.addItem(i => i.setTitle(optName("new-folder")).setIcon("folder").setDisabled(!haveFileExplorer).onClick(event => {
                 if (haveFileExplorer) {
+                    this.rootMenu().hide();
                     this.withExplorer(file)?.createAbstractFile("folder", file);
                 } else {
                     new Notice("The File Explorer core plugin must be enabled to create new folders")
@@ -81,6 +83,7 @@ export class ContextMenu extends PopupMenu {
         }));
         if (file instanceof TFolder && haveFileExplorer) {
             this.addItem(i => i.setIcon("folder").setTitle(i18next.t('plugins.file-explorer.action-reveal-file')).onClick(() => {
+                this.rootMenu().hide();
                 this.withExplorer(file);
             }));
         }
@@ -89,6 +92,11 @@ export class ContextMenu extends PopupMenu {
         } else {
             workspace.trigger("file-menu", this, file, "quick-explorer");
         }
+    }
+
+    onEnter(event: KeyboardEvent) {
+        this.rootMenu().hide();
+        return super.onEnter(event);
     }
 
     withExplorer(file: TAbstractFile) {
