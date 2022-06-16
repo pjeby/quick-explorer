@@ -20,11 +20,17 @@ export default class QE extends Plugin {
         return this.explorers.forWindow();
     }
 
+    updateCurrent(leaf = this.app.workspace.activeLeaf, file = this.app.workspace.getActiveFile()) {
+        this.explorers.forLeaf(leaf).update(file);
+    }
 
     onload() {
         this.app.workspace.registerHoverLinkSource(hoverSource, {
             display: 'Quick Explorer', defaultMod: true
         });
+
+        this.registerEvent(this.app.workspace.on("file-open", () => this.updateCurrent()));
+        this.registerEvent(this.app.workspace.on("active-leaf-change", leaf => this.updateCurrent(leaf)));
 
         this.addCommand({ id: "browse-vault",   name: "Browse vault",          callback: () => { this.explorer?.browseVault(); }, });
         this.addCommand({ id: "browse-current", name: "Browse current folder", callback: () => { this.explorer?.browseCurrent(); }, });

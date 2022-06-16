@@ -49,9 +49,7 @@ export class Explorer extends PerWindowComponent<QE> {
         this.register(() => unmount(buttonContainer, this));
         mount(buttonContainer, this);
 
-        this.update(this.app.workspace.getActiveFile());
-        this.registerEvent(this.app.workspace.on("file-open", this.update, this));
-        this.registerEvent(this.app.workspace.on("active-leaf-change", () => this.update(this.app.workspace.getActiveFile())));
+        if (this.isCurrent()) this.update(this.app.workspace.getActiveFile());
         this.registerEvent(this.app.vault.on("rename", this.onFileChange, this));
         this.registerEvent(this.app.vault.on("delete", this.onFileDelete, this));
 
@@ -83,7 +81,7 @@ export class Explorer extends PerWindowComponent<QE> {
         this.isOpen++;
         return new FolderMenu(this.app, folder, selected, opener).cascade(opener, event, () => {
             this.isOpen--;
-            if (!this.isOpen) this.update(this.app.workspace.getActiveFile());
+            if (!this.isOpen && this.isCurrent()) this.update(this.app.workspace.getActiveFile());
         });
     }
 
@@ -123,8 +121,12 @@ export class Explorer extends PerWindowComponent<QE> {
         return menu;
     }
 
+    isCurrent() {
+        return this === this.plugin.explorers.forLeaf(this.plugin.app.workspace.activeLeaf);
+    }
+
     update(file?: TAbstractFile) {
-        if (this.isOpen || this !== this.plugin.explorers.forWindow()) return;
+        if (this.isOpen) return;
         file ??= this.app.vault.getAbstractFileByPath("/");
         if (file == this.lastFile && file.path == this.lastPath) return;
         this.lastFile = file;
