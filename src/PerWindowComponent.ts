@@ -74,9 +74,9 @@ export class WindowManager<T extends PerWindowComponent<P>, P extends Plugin = P
     }
 
     forLeaf(leaf: WorkspaceItem, create = true) {
-        let win: Window;
+        let win: Window = leaf ? window : undefined;
         for (let item = leaf; item; item = item.parentSplit) {
-            if (leaf.win) win = leaf.win;
+            if (item.win) win = item.win;
         }
         return this.forWindow(win, create);
     }
