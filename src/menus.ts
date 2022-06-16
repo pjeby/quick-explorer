@@ -200,14 +200,14 @@ export class PopupMenu extends Menu {
     cascade(target: HTMLElement, event?: MouseEvent, onClose?: () => any, hOverlap = 15, vOverlap = 5) {
         const {left, right, top, bottom, width} = target.getBoundingClientRect();
         const centerX = left+Math.min(150, width/3), centerY = (top+bottom)/2;
-        const {innerHeight, innerWidth} = window;
+        const win = window.activeWindow ?? window, {innerHeight, innerWidth} = win;
 
         // Try to cascade down and to the right from the mouse or horizontal center
         // of the clicked item
         const point = {x: event ? event.clientX  - hOverlap : centerX , y: bottom - vOverlap};
 
         // Measure the menu and see if it fits
-        document.body.appendChild(this.dom);
+        win.document.body.appendChild(this.dom);
         const {offsetWidth, offsetHeight} = this.dom;
         const fitsBelow = point.y + offsetHeight < innerHeight;
         const fitsRight = point.x + offsetWidth <= innerWidth;

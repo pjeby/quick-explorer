@@ -1,7 +1,9 @@
-import { App, Component, TAbstractFile, TFile, TFolder } from "obsidian";
-import { list, el } from "redom";
+import { App, Plugin, TAbstractFile, TFile, TFolder } from "obsidian";
+import { list, el, mount, unmount } from "redom";
 import { ContextMenu } from "./ContextMenu";
 import { FolderMenu } from "./FolderMenu";
+import { PerWindowComponent, WindowManager } from "./PerWindowComponent";
+import QE from "./quick-explorer";
 
 export const hoverSource = "quick-explorer:folder-menu";
 
@@ -34,18 +36,19 @@ class Explorable {
     }
 }
 
-export class Explorer extends Component {
+export class Explorer extends PerWindowComponent<QE> {
     lastFile: TAbstractFile = null;
     lastPath: string = null;
     el: HTMLElement = <div id="quick-explorer" />;
     list = list(this.el, Explorable);
     isOpen = 0
-
-    constructor(public app: App) {
-        super()
-    }
+    app = this.plugin.app;
 
     onload() {
+        const buttonContainer = this.win.document.body.find(".titlebar .titlebar-button-container.mod-left");
+        this.register(() => unmount(buttonContainer, this));
+        mount(buttonContainer, this);
+
         this.update(this.app.workspace.getActiveFile());
         this.registerEvent(this.app.workspace.on("file-open", this.update, this));
         this.registerEvent(this.app.workspace.on("active-leaf-change", () => this.update(this.app.workspace.getActiveFile())));
@@ -121,7 +124,7 @@ export class Explorer extends Component {
     }
 
     update(file?: TAbstractFile) {
-        if (this.isOpen) return;
+        if (this.isOpen || this !== this.plugin.explorers.forWindow()) return;
         file ??= this.app.vault.getAbstractFileByPath("/");
         if (file == this.lastFile && file.path == this.lastPath) return;
         this.lastFile = file;

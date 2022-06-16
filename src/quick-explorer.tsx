@@ -1,6 +1,6 @@
 import {MenuItem, Plugin, TAbstractFile, TFolder} from "obsidian";
-import {mount, unmount} from "redom";
 import {Explorer, hoverSource} from "./Explorer";
+import {WindowManager} from "./PerWindowComponent";
 
 import "./redom-jsx";
 import "./styles.scss"
@@ -12,18 +12,16 @@ declare module "obsidian" {
     }
 }
 
-export default class extends Plugin {
+export default class QE extends Plugin {
     statusbarItem: HTMLElement
-    explorer: Explorer
+    explorers = new WindowManager(this, Explorer);
+
+    get explorer(): Explorer {
+        return this.explorers.forWindow();
+    }
+
 
     onload() {
-        this.app.workspace.onLayoutReady( () => {
-            const buttonContainer = document.body.find(".titlebar .titlebar-button-container.mod-left");
-            this.register(() => unmount(buttonContainer, this.explorer));
-            mount(buttonContainer, this.explorer = new Explorer(this.app));
-            this.addChild(this.explorer);
-        });
-
         this.app.workspace.registerHoverLinkSource(hoverSource, {
             display: 'Quick Explorer', defaultMod: true
         });

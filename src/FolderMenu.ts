@@ -202,7 +202,7 @@ export class FolderMenu extends PopupMenu implements HoverParent {
                         } else {
                             // Something like Kanban or Excalidraw, might not support focus flag,
                             // so make sure the current pane doesn't hang onto it
-                            (document.activeElement as HTMLElement)?.blur();
+                            (this.dom.ownerDocument.activeElement as HTMLElement)?.blur();
                             this.app.workspace.setActiveLeaf(leaf, false, true);
                         }
                     }
@@ -401,7 +401,7 @@ export class FolderMenu extends PopupMenu implements HoverParent {
             const
                 menu = this.dom.getBoundingClientRect(),
                 selected = this.currentItem().dom.getBoundingClientRect(),
-                container = hoverEl.offsetParent || document.documentElement,
+                container = hoverEl.offsetParent || this.dom.ownerDocument.documentElement,
                 popupHeight = hoverEl.offsetHeight,
                 left = Math.min(menu.right + 2, container.clientWidth - hoverEl.offsetWidth),
                 top = Math.min(Math.max(0, selected.top - popupHeight/8), container.clientHeight - popupHeight)
