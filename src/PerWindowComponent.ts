@@ -34,8 +34,7 @@ export class WindowManager<T extends PerWindowComponent<P>, P extends Plugin = P
     constructor (
         public plugin: P,
         public factory: new (plugin: P, win: Window) => T,  // The class of thing to manage
-        public autocreate = true,  // create all items at start and monitor new window creation
-        public deferInit = false
+        public autocreate = true  // create all items at start and monitor new window creation
     ) {
         super();
         plugin.addChild(this);
