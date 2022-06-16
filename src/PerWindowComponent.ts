@@ -47,9 +47,9 @@ export class WindowManager<T extends PerWindowComponent<P>, P extends Plugin = P
             // Monitor new window creation
             if (workspace.floatingSplit) this.register(around(workspace.floatingSplit, {
                 insertChild(old) {
-                    return function(item, ...args) {
+                    return function(pos, item, resize) {
                         setImmediate(() => self.forLeaf(item, true));
-                        return old.call(this, item, ...args);
+                        return old.call(this, pos, item, resize);
                     }
                 }
             }));
@@ -110,6 +110,6 @@ declare module "obsidian" {
     }
     interface WorkspaceSplit {
         children: WorkspaceItem[];
-        insertChild(item: WorkspaceItem): void;
+        insertChild(pos: number, item: WorkspaceItem, resize?: boolean): void;
     }
 }
