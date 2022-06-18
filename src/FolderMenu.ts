@@ -3,6 +3,7 @@ import { hoverSource, startDrag } from "./Explorer";
 import { PopupMenu, MenuParent } from "./menus";
 import { ContextMenu } from "./ContextMenu";
 import { around } from "monkey-around";
+import { windowForDom } from "./PerWindowComponent";
 
 declare module "obsidian" {
     interface HoverPopover {
@@ -11,6 +12,9 @@ declare module "obsidian" {
         onHover: boolean
         isPinned?: boolean
         abortController?: Component
+        targetEl?: HTMLElement
+        onMouseIn(event: MouseEvent): void;
+        onMouseOut(event: MouseEvent): void;
     }
     interface App {
         viewRegistry: {
@@ -341,7 +345,10 @@ export class FolderMenu extends PopupMenu implements HoverParent {
     showPopover = debounce(() => {
         this.hidePopover();
         if (!autoPreview) return;
-        this.maybeHover(this.currentItem()?.dom, file => this.app.workspace.trigger('link-hover', this, null, file.path, ""));
+        this.maybeHover(this.currentItem()?.dom, file => this.app.workspace.trigger(
+            // Use document.body as targetEl so 0.15.x won't crash on preview
+            'link-hover', this, windowForDom(this.dom).document.body, file.path, ""
+        ));
     }, 50, true)
 
     onItemHover = (event: MouseEvent, targetEl: HTMLDivElement) => {
@@ -385,6 +392,14 @@ export class FolderMenu extends PopupMenu implements HoverParent {
             popover = null;
         }
         this._popover = popover;
+
+        /* Work around 0.15.x null targetEl bug using document.body */
+        const targetEl: HTMLElement = (popover as any)?.targetEl;
+        if (targetEl && targetEl === targetEl.ownerDocument.body) {
+            targetEl.removeEventListener("mouseover", popover.onMouseIn);
+            targetEl.removeEventListener("mouseout", popover.onMouseOut);
+        }
+
         if (autoPreview && popover && this.currentItem()) {
             // Override auto-pinning if we are generating auto-previews, to avoid
             // generating huge numbers of popovers
