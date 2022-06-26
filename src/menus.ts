@@ -2,6 +2,9 @@ import {Menu, App, MenuItem, debounce, Keymap, Scope} from "obsidian";
 import {around} from "monkey-around";
 
 declare module "obsidian" {
+    interface Component {
+        _loaded: boolean
+    }
     interface Menu {
         app: App
         dom: HTMLDivElement
@@ -12,6 +15,8 @@ declare module "obsidian" {
         selected: number
         onArrowDown(e: KeyboardEvent): false
         onArrowUp(e: KeyboardEvent): false
+
+        sort?(): void
     }
 
     export namespace Keymap {
@@ -92,6 +97,7 @@ export class PopupMenu extends Menu {
         const i = new MenuItem(this);
         this.items.push(i);
         cb(i);
+        if (this._loaded && this.sort) this.sort();
         return this;
     }
 

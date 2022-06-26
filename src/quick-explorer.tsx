@@ -9,6 +9,12 @@ declare module "obsidian" {
         registerHoverLinkSource(source: string, info: {display: string, defaultMod?: boolean}): void
         unregisterHoverLinkSource(source: string): void
     }
+    interface Menu {
+        sections: string[]
+    }
+    interface MenuItem {
+        setSection?(section: string): this
+    }
 }
 
 export default class QE extends Plugin {
@@ -37,11 +43,13 @@ export default class QE extends Plugin {
             if (source !== "quick-explorer") menu.addItem(i => {
                 i.setIcon("folder").setTitle("Show in Quick Explorer").onClick(e => { this.explorers.forWindow()?.browseFile(file); });
                 item = i;
+                item.setSection?.("view");
             })
             if (item) {
                 const revealFile = i18next.t(`plugins.file-explorer.action-reveal-file`);
                 const idx = menu.items.findIndex(i => i.titleEl.textContent === revealFile);
-                (menu.dom as HTMLElement).insertBefore(item.dom, menu.items[idx+1].dom);
+                // Remove this once 0.15.3+ is required
+                if (!menu.sections) (menu.dom as HTMLElement).insertBefore(item.dom, menu.items[idx+1].dom);
                 menu.items.remove(item);
                 menu.items.splice(idx+1, 0, item);
             }
