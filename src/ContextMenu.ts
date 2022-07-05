@@ -87,11 +87,7 @@ export class ContextMenu extends PopupMenu {
                 this.withExplorer(file);
             }));
         }
-        if (file === workspace.getActiveFile()) {
-            workspace.trigger("file-menu", this, file, "quick-explorer", workspace.activeLeaf);
-        } else {
-            workspace.trigger("file-menu", this, file, "quick-explorer");
-        }
+        workspace.trigger("file-menu", this, file, "quick-explorer");
     }
 
     onEnter(event: KeyboardEvent) {
