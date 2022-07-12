@@ -78,6 +78,7 @@ export class FolderMenu extends PopupMenu implements HoverParent {
         const { dom } = this;
         const menuItem = ".menu-item[data-file-path]";
         dom.on("click",       menuItem, this.onItemClick, true);
+        dom.on("auxclick",    menuItem, this.onItemClick, true);
         dom.on("contextmenu", menuItem, this.onItemMenu );
         dom.on('mouseover'  , menuItem, this.onItemHover);
         dom.on("mousedown",   menuItem, e => {e.stopPropagation()}, true);  // Fix drag cancelling
@@ -444,7 +445,7 @@ export class FolderMenu extends PopupMenu implements HoverParent {
 
         if (file instanceof TFile) {
             if (this.app.viewRegistry.isExtensionRegistered(file.extension)) {
-                this.app.workspace.openLinkText(file.path, "", event && Keymap.isModifier(event, "Mod"));
+                this.app.workspace.openLinkText(file.path, "", event && Keymap.isModEvent(event));
                 // Close the entire menu tree
                 this.rootMenu().hide();
                 event?.stopPropagation();

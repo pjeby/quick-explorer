@@ -50,7 +50,7 @@ export class ContextMenu extends PopupMenu {
             this.addItem(i => i.setTitle(optName("new-note")).setIcon("create-new").onClick(async e => {
                 this.rootMenu().hide();
                 const newFile = await this.app.fileManager.createNewMarkdownFile(file);
-                if (newFile) await this.app.workspace.getLeaf(Keymap.isModifier(e, "Mod")).openFile(newFile, {
+                if (newFile) await this.app.workspace.getLeaf(Keymap.isModEvent(e)).openFile(newFile, {
                     active: !0, state: { mode: "source" }, eState: { rename: "all" }
                 })
             }));
