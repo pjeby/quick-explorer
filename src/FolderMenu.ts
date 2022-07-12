@@ -444,7 +444,7 @@ export class FolderMenu extends PopupMenu implements HoverParent {
 
         if (file instanceof TFile) {
             if (this.app.viewRegistry.isExtensionRegistered(file.extension)) {
-                this.app.workspace.openLinkText(file.path, "", event && Keymap.isModifier(event, "Mod"));
+                this.app.workspace.openLinkText(file.path, "", event && Keymap.isModEvent(event));
                 // Close the entire menu tree
                 this.rootMenu().hide();
                 event?.stopPropagation();
