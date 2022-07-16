@@ -1,4 +1,5 @@
-import {MenuItem, Plugin, TAbstractFile, TFolder} from "obsidian";
+import {MenuItem, Plugin, TFolder} from "obsidian";
+import {use} from "ophidian";
 import {Explorer, hoverSource} from "./Explorer";
 
 import "./redom-jsx";
@@ -12,14 +13,13 @@ declare module "obsidian" {
     interface Menu {
         sections: string[]
     }
-    interface MenuItem {
-        setSection?(section: string): this
-    }
 }
 
 export default class QE extends Plugin {
     statusbarItem: HTMLElement
-    explorers = Explorer.perWindow(this, false);
+
+    use = use.plugin(this);
+    explorers = this.use(Explorer);
 
     updateCurrent(leaf = this.app.workspace.activeLeaf, file = this.app.workspace.getActiveFile()) {
         this.explorers.forLeaf(leaf).update(file);

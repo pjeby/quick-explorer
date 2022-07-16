@@ -1,9 +1,8 @@
-import { App, Plugin, TAbstractFile, TFile, TFolder } from "obsidian";
+import { App, TAbstractFile, TFile, TFolder } from "obsidian";
 import { list, el, mount, unmount } from "redom";
 import { ContextMenu } from "./ContextMenu";
 import { FolderMenu } from "./FolderMenu";
-import { PerWindowComponent, WindowManager } from "./PerWindowComponent";
-import QE from "./quick-explorer";
+import { PerWindowComponent } from "ophidian";
 
 export const hoverSource = "quick-explorer:folder-menu";
 
@@ -36,13 +35,13 @@ class Explorable {
     }
 }
 
-export class Explorer extends PerWindowComponent<QE> {
+export class Explorer extends PerWindowComponent {
     lastFile: TAbstractFile = null;
     lastPath: string = null;
     el: HTMLElement = <div id="quick-explorer" />;
     list = list(this.el, Explorable);
     isOpen = 0
-    app = this.plugin.app;
+    app = app;
 
     onload() {
         const buttonContainer = this.win.document.body.find(".titlebar .titlebar-button-container.mod-left");
@@ -122,7 +121,7 @@ export class Explorer extends PerWindowComponent<QE> {
     }
 
     isCurrent() {
-        return this === this.plugin.explorers.forLeaf(this.plugin.app.workspace.activeLeaf);
+        return this === this.use(Explorer).forLeaf(app.workspace.activeLeaf);
     }
 
     update(file?: TAbstractFile) {

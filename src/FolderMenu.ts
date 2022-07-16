@@ -8,7 +8,6 @@ import { windowForDom } from "./PerWindowComponent";
 declare module "obsidian" {
     interface HoverPopover {
         hide(): void
-        hoverEl: HTMLDivElement
         onHover: boolean
         isPinned?: boolean
         abortController?: Component
