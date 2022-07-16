@@ -3,7 +3,7 @@ import { hoverSource, startDrag } from "./Explorer";
 import { PopupMenu, MenuParent } from "./menus";
 import { ContextMenu } from "./ContextMenu";
 import { around } from "monkey-around";
-import { windowForDom } from "./PerWindowComponent";
+import { onElement, windowForDom } from "ophidian";
 
 declare module "obsidian" {
     interface HoverPopover {
@@ -87,6 +87,8 @@ export class FolderMenu extends PopupMenu implements HoverParent {
 
         // When we unload, reactivate parent menu's hover, if needed
         this.register(() => { autoPreview && this.parent instanceof FolderMenu && this.parent.showPopover(); })
+
+
 
         // Make obsidian.Menu think mousedowns on our popups are happening
         // on us, so we won't close before an actual click occurs
@@ -281,6 +283,13 @@ export class FolderMenu extends PopupMenu implements HoverParent {
 
     onload() {
         super.onload();
+        this.register(
+            onElement(this.dom.ownerDocument.body, "mousedown", ".hover-popover", (e, t) => {
+                if (this.hoverPopover?.hoverEl === t) {
+                    this.hoverPopover.togglePin?.(true);
+                }
+            }, {capture: true})
+        );
         this.registerEvent(this.app.vault.on("create", (file) => {
             if (this.folder === file.parent) this.refreshFiles();
         }));
