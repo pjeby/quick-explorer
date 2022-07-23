@@ -5,10 +5,11 @@
     },
     "license": "ISC",
     "devDependencies": {
+        "@ophidian/core": "git://github.com/ophidian-lib/core.git",
+        "@ophidian/build": "^1",
         "i18next": "^20.3.2",
         "monkey-around": "^2.1",
         "obsidian": "0.15.4",
-        "ophidian": "git://github.com/pjeby/ophidian.git",
         "obsidian-rollup-presets": "github:pjeby/obsidian-rollup-presets",
         "redom": "^3.27.1"
     }

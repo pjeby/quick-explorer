@@ -1,5 +1,5 @@
 import {MenuItem, Plugin, TFolder} from "obsidian";
-import {use} from "ophidian";
+import {use} from "@ophidian/core";
 import {Explorer, hoverSource} from "./Explorer";
 
 import "./redom-jsx";
@@ -19,7 +19,7 @@ export default class QE extends Plugin {
     statusbarItem: HTMLElement
 
     use = use.plugin(this);
-    explorers = this.use(Explorer);
+    explorers = this.use(Explorer).watch();
 
     updateCurrent(leaf = this.app.workspace.activeLeaf, file = this.app.workspace.getActiveFile()) {
         this.explorers.forLeaf(leaf).update(file);

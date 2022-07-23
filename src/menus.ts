@@ -33,7 +33,7 @@ declare module "obsidian" {
 
 export type MenuParent = App | PopupMenu;
 
-export class PopupMenu extends Menu {
+export class PopupMenu extends (Menu as new (app: App) => Menu) { // XXX fixme when 0.15.6 is required
     /** The child menu popped up over this one */
     child: Menu
 
@@ -94,7 +94,7 @@ export class PopupMenu extends Menu {
 
     // Override to avoid having a mouseover event handler
     addItem(cb: (i: MenuItem) => any) {
-        const i = new MenuItem(this);
+        const i = new (MenuItem as unknown as new (menu: Menu) => MenuItem)(this);
         this.items.push(i);
         cb(i);
         if (this._loaded && this.sort) this.sort();

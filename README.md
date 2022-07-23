@@ -55,7 +55,9 @@ Quick explorer also includes two hotkeyable commands:
 
 And last, but not least, it also adds a "Show in Quick Explorer" option to all file menus other than its own.  That way, you can use it from links, graph views, the Pane Relief history menus, other views (like Stars or Recent Files), etc., so you can use it instead of the File Explorer.
 
-### Theme Compatibility
+### Theme and Plugin Compatibility
+
+While active, Quick Explorer may reformat the title bar so that the standard Obsidian title appears on the right, rather than the center, to make room for Quick Explorer itself.  It also removes the name of the current file from the display, but *not* from the operating system-level window title!  This means that if you're using a plugin like Custom Window Title that manipulates the window title directly, it will still be working at the OS level even if the *displayed* title is shortened, so that automations/scripts/etc. that find the window by its title should still work correctly.
 
 Quick Explorer was initially written using the same color variables as Obsidian itself does for menus.  Unfortunately, the vast majority of themes do not set these variables in such a way as to provide adequate contrast for the menu selection in dark mode, and some do not do so in light mode, either.  (This is probably because selection contrast in menus isn't terribly important if you have to use the mouse cursor anyway, but it makes keyboard navigation impossible.)
 

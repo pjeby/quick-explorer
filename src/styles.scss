@@ -2,6 +2,9 @@
     opacity: 1;
 }
 
+// Push our replacement to the right
+.titlebar .titlebar-inner .titlebar-text.qe-replacement { text-align: right; }
+
 #quick-explorer {
     display: inline-block;
     padding-left: 10px;

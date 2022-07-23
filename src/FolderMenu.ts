@@ -3,7 +3,7 @@ import { hoverSource, startDrag } from "./Explorer";
 import { PopupMenu, MenuParent } from "./menus";
 import { ContextMenu } from "./ContextMenu";
 import { around } from "monkey-around";
-import { onElement, windowForDom } from "ophidian";
+import { onElement, windowForDom } from "@ophidian/core";
 
 declare module "obsidian" {
     interface HoverPopover {

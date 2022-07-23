@@ -1,14 +1,15 @@
-import { App, TAbstractFile, TFile, TFolder } from "obsidian";
+import { App, FileView, requireApiVersion, TAbstractFile, TFile, TFolder } from "obsidian";
 import { list, el, mount, unmount } from "redom";
 import { ContextMenu } from "./ContextMenu";
 import { FolderMenu } from "./FolderMenu";
-import { PerWindowComponent } from "ophidian";
+import { PerWindowComponent } from "@ophidian/core";
 
 export const hoverSource = "quick-explorer:folder-menu";
 
 declare module "obsidian" {
     interface App {
         dragManager: any
+        getAppTitle(prefix?: string): string;
     }
 }
 
@@ -44,11 +45,27 @@ export class Explorer extends PerWindowComponent {
     app = app;
 
     onload() {
+        if (requireApiVersion("0.15.6")) {
+            const originalTitleEl = this.win.document.body.find(".titlebar .titlebar-inner .titlebar-text");
+            const titleEl = originalTitleEl.cloneNode(true) as HTMLElement;
+            titleEl.addClass("qe-replacement");
+            titleEl.textContent = app.getAppTitle?.() ?? this.win.document.title;
+            originalTitleEl.replaceWith(titleEl);
+            this.register(() => titleEl.replaceWith(originalTitleEl));
+        }
+
         const buttonContainer = this.win.document.body.find(".titlebar .titlebar-button-container.mod-left");
         this.register(() => unmount(buttonContainer, this));
         mount(buttonContainer, this);
 
-        if (this.isCurrent()) this.update(this.app.workspace.getActiveFile());
+        if (this.isCurrent()) {
+            this.update(this.app.workspace.getActiveFile());
+        } else {
+            const leaf = app.workspace.getMostRecentLeaf(this.container);
+            const file = (leaf?.view instanceof FileView) && leaf.view.file;
+            if (file) this.update(file);
+        }
+
         this.registerEvent(this.app.vault.on("rename", this.onFileChange, this));
         this.registerEvent(this.app.vault.on("delete", this.onFileDelete, this));
 

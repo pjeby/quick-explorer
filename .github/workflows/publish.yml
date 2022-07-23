@@ -12,7 +12,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: pjeby/ophidian@master
+      - uses: ophidian-lib/build@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           release-notes: ${{ github.event.commits[0].message }}
