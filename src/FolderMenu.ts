@@ -436,6 +436,7 @@ export class FolderMenu extends PopupMenu implements HoverParent {
     }
 
     onItemClick = (event: MouseEvent, target: HTMLDivElement) => {
+        if (event.type === "auxclick" && !Keymap.isModEvent(event)) return;
         const file = this.fileForDom(target);
         if (!file) return;
         if (!this.onClickFile(file, target, event)) {
