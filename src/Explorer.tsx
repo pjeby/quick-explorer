@@ -47,11 +47,13 @@ export class Explorer extends PerWindowComponent {
     onload() {
         if (requireApiVersion("0.15.6")) {
             const originalTitleEl = this.win.document.body.find(".titlebar .titlebar-inner .titlebar-text");
-            const titleEl = originalTitleEl.cloneNode(true) as HTMLElement;
-            titleEl.addClass("qe-replacement");
-            titleEl.textContent = app.getAppTitle?.() ?? this.win.document.title;
-            originalTitleEl.replaceWith(titleEl);
-            this.register(() => titleEl.replaceWith(originalTitleEl));
+            const titleEl = originalTitleEl?.cloneNode(true) as HTMLElement;
+            if (titleEl) { // CPHATB plugin might have removed/replaced the original
+                titleEl.addClass("qe-replacement");
+                titleEl.textContent = app.getAppTitle?.() ?? this.win.document.title;
+                originalTitleEl.replaceWith(titleEl);
+                this.register(() => titleEl.replaceWith(originalTitleEl));
+            }
         }
 
         const buttonContainer = this.win.document.body.find(".titlebar .titlebar-button-container.mod-left");
