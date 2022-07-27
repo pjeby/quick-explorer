@@ -1,9 +1,10 @@
-import {MenuItem, Plugin, TFolder} from "obsidian";
-import {use} from "@ophidian/core";
+import {MenuItem, Plugin, TAbstractFile, TFolder} from "obsidian";
+import {use, command, addCommands} from "@ophidian/core";
 import {Explorer, hoverSource} from "./Explorer";
 
 import "./redom-jsx";
 import "./styles.scss"
+import { navigateFile } from "./file-info";
 
 declare module "obsidian" {
     interface Workspace {
@@ -38,6 +39,8 @@ export default class QE extends Plugin {
         this.addCommand({ id: "browse-vault",   name: "Browse vault",          callback: () => { this.explorers.forWindow()?.browseVault(); }, });
         this.addCommand({ id: "browse-current", name: "Browse current folder", callback: () => { this.explorers.forWindow()?.browseCurrent(); }, });
 
+        addCommands(this);
+
         this.registerEvent(this.app.workspace.on("file-menu", (menu, file, source) => {
             let item: MenuItem
             if (source !== "quick-explorer") menu.addItem(i => {
@@ -58,6 +61,17 @@ export default class QE extends Plugin {
         }));
 
         Object.defineProperty(TFolder.prototype, "basename", {get(){ return this.name; }, configurable: true})
+    }
+
+    [command("go-next",  "Go to next file in folder")]     () { return this.goFile( 1, true); }
+    [command("go-prev",  "Go to previous file in folder")] () { return this.goFile(-1, true); }
+    [command("go-first", "Go to first file in folder")]    () { return this.goFile(-1, false); }
+    [command("go-last",  "Go to last file in folder")]     () { return this.goFile( 1, false); }
+
+    goFile(dir: number, relative: boolean) {
+        const curFile = app.workspace.getActiveFile();
+        const goFile = curFile && navigateFile(curFile, dir, relative);
+        if (goFile && goFile !== curFile) return () => app.workspace.activeLeaf.openFile(goFile);
     }
 
     onunload() {

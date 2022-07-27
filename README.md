@@ -48,12 +48,18 @@ And an extensive set of keyboard operations is available as well:
 
 Like the built-in file explorer, Quick Explorer will either show all files, or only the ones supported by Obsidian, depending upon whether the "Detect all file extensions" setting is enabled in the "Files and Links" options tab.
 
-Quick explorer also includes two hotkeyable commands:
+Quick explorer also includes six hotkeyable commands:
 
 * **Browse vault**, which opens the dropdown for the vault root, and
 * **Browse current folder**, which opens the dropdown for the active file's containing folder
+* **Go to next file in folder**, which opens the next file in the active file's folder
+* **Go to previous file in folder**, which opens the previous file in the active file's folder
+* **Go to first file in folder**, which opens the first file in the active file's folder
+* **Go to last file in folder**, which opens the last file in the active file's folder
 
-And last, but not least, it also adds a "Show in Quick Explorer" option to all file menus other than its own.  That way, you can use it from links, graph views, the Pane Relief history menus, other views (like Stars or Recent Files), etc., so you can use it instead of the File Explorer.
+(Note: the "go to" commands navigate using Quick Explorer's menu order, which is to say: folder note first, subfolders second, and files last.  Roughly speaking, they're equivalent to issuing the "browse current folder" command and then arrowing up or down (or using Home/End) and hitting enter until a file is opened.  So the "first file" is either the folder note (if any) or the first file in any *subfolder* of the current folder, and the "last file" is either the last actual file, or the last file in any subfolder if the folder *only* contains a folder note.)
+
+And last, but not least, Quick Explorer also adds a "Show in Quick Explorer" option to all file menus other than its own.  That way, you can use it from links, graph views, the Pane Relief history menus, other views (like Stars or Recent Files), etc., so you can use it instead of the File Explorer.
 
 ### Theme and Plugin Compatibility
 

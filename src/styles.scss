@@ -3,7 +3,11 @@
 }
 
 // Push our replacement to the right
-.titlebar .titlebar-inner .titlebar-text.qe-replacement { text-align: right; display: block; position: absolute; }
+.titlebar-text.qe-replacement {
+    text-align: right;
+    justify-content: flex-end;
+    align-items: flex-end;
+}
 
 #quick-explorer {
     display: inline-block;

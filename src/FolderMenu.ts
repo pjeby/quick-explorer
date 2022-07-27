@@ -4,6 +4,7 @@ import { PopupMenu, MenuParent } from "./menus";
 import { ContextMenu } from "./ContextMenu";
 import { around } from "monkey-around";
 import { onElement, windowForDom } from "@ophidian/core";
+import { fileIcon, folderNoteFor, previewIcons, sortedFiles } from "./file-info";
 
 declare module "obsidian" {
     interface HoverPopover {
@@ -34,21 +35,6 @@ interface HoverEditor extends HoverPopover {
     rootSplit: WorkspaceSplit;
     togglePin(pinned?: boolean): void;
 }
-
-const alphaSort = new Intl.Collator(undefined, {usage: "sort", sensitivity: "base", numeric: true}).compare;
-
-const previewIcons: Record<string, string> = {
-    markdown: "document",
-    image: "image-file",
-    audio: "audio-file",
-    pdf: "pdf-file",
-}
-
-const viewtypeIcons: Record<string, string> = {
-    ...previewIcons,
-    // add third-party plugins
-    excalidraw: "excalidraw-icon",
-};
 
 
 // Global auto preview mode
@@ -220,15 +206,8 @@ export class FolderMenu extends PopupMenu implements HoverParent {
     }
 
     loadFiles(folder: TFolder, selectedFile?: TAbstractFile) {
-        const folderNote = this.folderNote(this.folder);
         this.dom.empty(); this.items = [];
-        const allFiles = this.app.vault.getConfig("showUnsupportedFiles");
-        const {children, parent} = folder;
-        const items = children.slice().sort((a: TAbstractFile, b: TAbstractFile) => alphaSort(a.name, b.name))
-        const folders = items.filter(f => f instanceof TFolder) as TFolder[];
-        const files   = items.filter(f => f instanceof TFile && f !== folderNote && (allFiles || this.fileIcon(f))) as TFile[];
-        folders.sort((a, b) => alphaSort(a.name, b.name));
-        files.sort((a, b) => alphaSort(a.basename, b.basename));
+        const {folderNote, folders, files} = sortedFiles(folder);
         if (folderNote) {
             this.addFile(folderNote);
         }
@@ -243,20 +222,12 @@ export class FolderMenu extends PopupMenu implements HoverParent {
         this.select(selectedFile ? this.itemForPath(selectedFile.path) : 0);
     }
 
-    fileIcon(file: TAbstractFile) {
-        if (file instanceof TFolder) return "folder";
-        if (file instanceof TFile) {
-            const viewType = this.app.viewRegistry.getTypeByExtension(file.extension);
-            if (viewType) return viewtypeIcons[viewType] ?? "document";
-        }
-    }
-
     fileCount: (file: TAbstractFile) => number = (file: TAbstractFile) => (
-        file instanceof TFolder ? file.children.map(this.fileCount).reduce((a,b) => a+b, 0) : (this.fileIcon(file) ? 1 : 0)
+        file instanceof TFolder ? file.children.map(this.fileCount).reduce((a,b) => a+b, 0) : (fileIcon(file) ? 1 : 0)
     )
 
     addFile(file: TAbstractFile) {
-        const icon = this.fileIcon(file);
+        const icon = fileIcon(file);
         this.addItem(i => {
             i.setTitle(file.name);
             i.dom.dataset.filePath = file.path;
@@ -369,20 +340,11 @@ export class FolderMenu extends PopupMenu implements HoverParent {
     maybeHover(targetEl: HTMLDivElement, cb: (file: TFile) => void) {
         if (!this.canShowPopover()) return;
         let file = this.fileForDom(targetEl)
-        if (file instanceof TFolder) file = this.folderNote(file);
+        if (file instanceof TFolder) file = folderNoteFor(file);
         if (file instanceof TFile && previewIcons[this.app.viewRegistry.getTypeByExtension(file.extension)]) {
             cb(file)
         };
     }
-
-    folderNote(folder: TFolder) {
-        return this.app.vault.getAbstractFileByPath(this.folderNotePath(folder));
-    }
-
-    folderNotePath(folder: TFolder) {
-        return `${folder.path}/${folder.name}.md`;
-    }
-
 
     _popover: HoverEditor;
 
@@ -468,7 +430,7 @@ export class FolderMenu extends PopupMenu implements HoverParent {
             this.openBreadcrumb(this.opener?.nextElementSibling);
         } else {
             // Otherwise, pop a new menu for the subfolder
-            const folderMenu = new FolderMenu(this, file as TFolder, this.folderNote(file as TFolder));
+            const folderMenu = new FolderMenu(this, file as TFolder, folderNoteFor(file as TFolder));
             folderMenu.cascade(target, event instanceof MouseEvent ? event : undefined);
         }
     }
