@@ -48,7 +48,9 @@ function fileIndex(folder: TFolder, allFiles?: boolean): TAbstractFile[] {
 }
 
 export function navigateFile(file: TAbstractFile, direction: number, relative: boolean): TFile {
-    while (file?.parent) {
+    const seen = new Set<TAbstractFile>();
+    while (file?.parent && !seen.has(file)) {
+        seen.add(file);
         let all = fileIndex(file.parent, false);
         let pos = all.indexOf(file);
         if (pos === -1) return; // XXX should never happen!

@@ -69,9 +69,11 @@ export default class QE extends Plugin {
     [command("go-last",  "Go to last file in folder")]     () { return this.goFile( 1, false); }
 
     goFile(dir: number, relative: boolean) {
-        const curFile = app.workspace.getActiveFile();
-        const goFile = curFile && navigateFile(curFile, dir, relative);
-        if (goFile && goFile !== curFile) return () => app.workspace.activeLeaf.openFile(goFile);
+        return () => {
+            const curFile = app.workspace.getActiveFile();
+            const goFile = curFile && navigateFile(curFile, dir, relative);
+            if (goFile && goFile !== curFile) app.workspace.activeLeaf.openFile(goFile);
+        }
     }
 
     onunload() {
