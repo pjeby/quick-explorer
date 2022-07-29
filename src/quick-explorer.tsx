@@ -1,5 +1,5 @@
-import {MenuItem, Plugin, TAbstractFile, TFolder} from "obsidian";
-import {use, command, addCommands} from "@ophidian/core";
+import {MenuItem, Plugin, TFolder} from "obsidian";
+import {use, command, addCommands, StyleSettings} from "@ophidian/core";
 import {Explorer, hoverSource} from "./Explorer";
 
 import "./redom-jsx";
@@ -21,9 +21,10 @@ export default class QE extends Plugin {
 
     use = use.plugin(this);
     explorers = this.use(Explorer).watch();
+    ss = this.use(StyleSettings);
 
     updateCurrent(leaf = this.app.workspace.activeLeaf, file = this.app.workspace.getActiveFile()) {
-        this.explorers.forLeaf(leaf).update(file);
+        if (app.workspace.isLeafAttached(leaf)) this.explorers.forLeaf(leaf).update(file);
     }
 
     onload() {
@@ -32,9 +33,7 @@ export default class QE extends Plugin {
         });
 
         this.registerEvent(this.app.workspace.on("file-open", () => this.updateCurrent()));
-        this.registerEvent(this.app.workspace.on("active-leaf-change", leaf => this.updateCurrent(leaf)));
-
-        this.app.workspace.onLayoutReady(() => this.updateCurrent());
+        this.registerEvent(this.explorers.onLeafChange(leaf => this.updateCurrent(leaf)));
 
         this.addCommand({ id: "browse-vault",   name: "Browse vault",          callback: () => { this.explorers.forWindow()?.browseVault(); }, });
         this.addCommand({ id: "browse-current", name: "Browse current folder", callback: () => { this.explorers.forWindow()?.browseCurrent(); }, });

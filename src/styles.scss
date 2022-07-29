@@ -1,12 +1,34 @@
+/*! /* @settings
+name: Quick Explorer
+id: quick-explorer
+settings:
+    -   id: qe-obsidian-title
+        title: Obsidian Title (Vault+Version)
+        description: What should happen to the Obsidian title text?
+        type: class-select
+        default: qe-title-right
+        options:
+            - label: Show it on the right
+              value: qe-title-right
+            - label: Show it in the center
+              value: qe-title-center
+            - label: Hide it entirely
+              value: qe-title-hide
+*/
+
 .titlebar-button-container.mod-left {
     opacity: 1;
 }
 
 // Push our replacement to the right
-.titlebar-text.qe-replacement {
+body:not(.qe-title-center):not(.qe-title-hide) .titlebar-text.qe-replacement {
     text-align: right;
     justify-content: flex-end;
     align-items: flex-end;
+}
+
+body.qe-title-hide .titlebar-text.qe-replacement {
+    display: none;
 }
 
 #quick-explorer {
