@@ -1,5 +1,5 @@
 import {MenuItem, Plugin, TFolder} from "obsidian";
-import {use, command, addCommands, StyleSettings} from "@ophidian/core";
+import {use, command, addCommands, isLeafAttached, StyleSettings} from "@ophidian/core";
 import {Explorer, hoverSource} from "./Explorer";
 
 import "./redom-jsx";
@@ -24,7 +24,7 @@ export default class QE extends Plugin {
     ss = this.use(StyleSettings);
 
     updateCurrent(leaf = this.app.workspace.activeLeaf, file = this.app.workspace.getActiveFile()) {
-        if (app.workspace.isLeafAttached(leaf)) this.explorers.forLeaf(leaf).update(file);
+        if (isLeafAttached(leaf)) this.explorers.forLeaf(leaf).update(file);
     }
 
     onload() {

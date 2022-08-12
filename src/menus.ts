@@ -17,6 +17,7 @@ declare module "obsidian" {
         onArrowUp(e: KeyboardEvent): false
 
         sort?(): void
+        setUseNativeMenu?(flag: boolean): void;  // 0.16 to force HTML menu
     }
 
     export namespace Keymap {
@@ -44,6 +45,7 @@ export class PopupMenu extends (Menu as new (app: App) => Menu) { // XXX fixme w
 
     constructor(public parent: MenuParent, public app: App = parent instanceof App ? parent : parent.app) {
         super(app);
+        this.setUseNativeMenu?.(false);
         if (parent instanceof PopupMenu) parent.setChildMenu(this);
 
         this.scope = new Scope;
