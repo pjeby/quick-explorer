@@ -1,4 +1,4 @@
-import { App, FileView, requireApiVersion, TAbstractFile, TFile, TFolder } from "obsidian";
+import { App, FileView, Notice, requireApiVersion, TAbstractFile, TFile, TFolder } from "obsidian";
 import { list, el, mount, unmount } from "redom";
 import { ContextMenu } from "./ContextMenu";
 import { FolderMenu } from "./FolderMenu";
@@ -57,6 +57,10 @@ export class Explorer extends PerWindowComponent {
         }
 
         const buttonContainer = this.win.document.body.find(".titlebar .titlebar-button-container.mod-left");
+        if (!buttonContainer) {
+            if (this.win === window) new Notice("Quick Explorer cannot load with native title mode active");
+            return;
+        }
         this.register(() => unmount(buttonContainer, this));
         mount(buttonContainer, this);
 

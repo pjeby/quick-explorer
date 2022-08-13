@@ -31,6 +31,19 @@ body.qe-title-hide .titlebar-text.qe-replacement {
     display: none;
 }
 
+// On Obsidian 0.16, conform to local style
+body.show-inline-title, body.is-hidden-frameless {
+    #quick-explorer {
+        display: inherit;
+        .explorable {
+            display: inherit;
+        }
+    }
+}
+
+// Force titlebar visibility even if hidden, since QE is kinda useless without it
+body.is-frameless.is-hidden-frameless { padding-top: 30px !important; }
+
 #quick-explorer {
     display: inline-block;
     padding-left: 10px;
@@ -41,7 +54,7 @@ body.qe-title-hide .titlebar-text.qe-replacement {
     background-color: var(--background-translucent) !important;
 
     .explorable {
-        font-size: 12px;
+        font-size: var(--font-ui-small, 12px);
         opacity: 0.75;
         cursor: pointer;
         padding: 0;
