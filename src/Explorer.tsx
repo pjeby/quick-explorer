@@ -56,6 +56,8 @@ export class Explorer extends PerWindowComponent {
             }
         }
 
+        if (requireApiVersion("0.16.0")) this.win.document.body.addClass("obsidian-themepocalypse");
+
         const buttonContainer = this.win.document.body.find(".titlebar .titlebar-button-container.mod-left");
         if (!buttonContainer) {
             if (this.win === window) new Notice("Quick Explorer cannot load with native title mode active");

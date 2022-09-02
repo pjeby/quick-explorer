@@ -18,6 +18,7 @@ declare module "obsidian" {
 
         sort?(): void
         setUseNativeMenu?(flag: boolean): void;  // 0.16 to force HTML menu
+        onMouseOver?(): void;
     }
 
     export namespace Keymap {
@@ -67,6 +68,7 @@ export class PopupMenu extends (Menu as new (app: App) => Menu) { // XXX fixme w
             return ret;
         }}});
         this.dom.addClass("qe-popup-menu");
+        if (this.onMouseOver) this.dom.removeEventListener("mouseover", this.onMouseOver);
     }
 
     onEscape() {
