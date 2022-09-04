@@ -41,8 +41,15 @@ body.obsidian-themepocalypse {
     }
 }
 
-// Force titlebar visibility even if hidden, since QE is kinda useless without it
-body.is-frameless.is-hidden-frameless { padding-top: 30px !important; }
+// Put QE on status bar, far to the left, if native or hidden frame
+body.is-frameless.is-hidden-frameless .status-bar,
+body:not(.is-frameless) .status-bar {
+    position: static;
+    .status-bar-item.left-region {
+        order: -9999;
+        flex-grow: 1;
+    }
+}
 
 #quick-explorer {
     display: inline-block;
@@ -56,6 +63,10 @@ body.is-frameless.is-hidden-frameless { padding-top: 30px !important; }
     .explorable {
         font-size: var(--font-ui-small, 12px);
         opacity: 0.75;
+        .status-bar & {
+            font-size: var(--status-bar-font-size, var(--font-ui-small, 12px));
+            opacity: 1;
+        }
         cursor: pointer;
         padding: 0;
         display: unset;

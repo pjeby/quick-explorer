@@ -24,7 +24,7 @@ But wait, there's more: a **quick-preview mode** that makes previewing lots of n
 
 &nbsp;
 
-And last, but far from least, you can even see the path of the current note file as a "breadcrumbs bar" in the window title bar.  Each breadcrumb, when clicked, drops down a list of the the files and folders in the same directory.  So if you click on the breadcrumb for the current file, you'll see the items in its folder, and the first breadcrumb will show items in the vault root.
+And last, but far from least, you can even see the path of the current note file as a "breadcrumbs bar" in each window's title bar (or status bar if the Obsidian title bar is disabled).  Each breadcrumb, when clicked, drops down (or pops up) a list of the the files and folders in the same directory.  So if you click on the breadcrumb for the current file, you'll see the items in its folder, and the first breadcrumb will show items in the vault root.
 
 ![](https://raw.githubusercontent.com/pjeby/quick-explorer/master/breadcrumbs.png)
 

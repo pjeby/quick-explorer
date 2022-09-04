@@ -1,8 +1,8 @@
-import { App, FileView, Notice, requireApiVersion, TAbstractFile, TFile, TFolder } from "obsidian";
+import { App, FileView, Notice, Plugin, requireApiVersion, TAbstractFile, TFile, TFolder } from "obsidian";
 import { list, el, mount, unmount } from "redom";
 import { ContextMenu } from "./ContextMenu";
 import { FolderMenu } from "./FolderMenu";
-import { PerWindowComponent } from "@ophidian/core";
+import { PerWindowComponent, statusBarItem } from "@ophidian/core";
 
 export const hoverSource = "quick-explorer:folder-menu";
 
@@ -58,11 +58,10 @@ export class Explorer extends PerWindowComponent {
 
         if (requireApiVersion("0.16.0")) this.win.document.body.addClass("obsidian-themepocalypse");
 
-        const buttonContainer = this.win.document.body.find(".titlebar .titlebar-button-container.mod-left");
-        if (!buttonContainer) {
-            if (this.win === window) new Notice("Quick Explorer cannot load with native title mode active");
-            return;
-        }
+        const buttonContainer = this.win.document.body.find(
+            "body:not(.is-hidden-frameless) .titlebar .titlebar-button-container.mod-left"
+        ) || statusBarItem(this, this.win, "left-region");
+
         this.register(() => unmount(buttonContainer, this));
         mount(buttonContainer, this);
 
