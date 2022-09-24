@@ -1,5 +1,5 @@
-import { TAbstractFile, TFile, TFolder, Keymap, Notice, HoverParent, debounce, WorkspaceSplit, HoverPopover, FileView, MarkdownView, Component } from "obsidian";
-import { hoverSource, startDrag } from "./Explorer";
+import { TAbstractFile, TFile, TFolder, Keymap, Notice, HoverParent, debounce, WorkspaceSplit, HoverPopover, FileView, MarkdownView } from "obsidian";
+import { Breadcrumb, hoverSource, startDrag } from "./Explorer";
 import { PopupMenu, MenuParent } from "./menus";
 import { ContextMenu } from "./ContextMenu";
 import { around } from "monkey-around";
@@ -8,6 +8,7 @@ import { fileIcon, folderNoteFor, previewIcons, sortedFiles } from "./file-info"
 
 declare module "obsidian" {
     interface HoverPopover {
+        position(pos?: {x: number, y: number}): void
         hide(): void
         onHover: boolean
         isPinned?: boolean
@@ -44,7 +45,7 @@ export class FolderMenu extends PopupMenu implements HoverParent {
 
     parentFolder: TFolder = this.parent instanceof FolderMenu ? this.parent.folder : null;
 
-    constructor(public parent: MenuParent, public folder: TFolder, public selectedFile?: TAbstractFile, public opener?: HTMLElement) {
+    constructor(public parent: MenuParent, public folder: TFolder, public selectedFile?: TAbstractFile, public crumb?: Breadcrumb) {
         super(parent);
         this.loadFiles(folder, selectedFile);
         this.scope.register([],        "Tab",   this.togglePreviewMode.bind(this));
@@ -87,7 +88,7 @@ export class FolderMenu extends PopupMenu implements HoverParent {
 
     onArrowLeft() {
         super.onArrowLeft();
-        if (this.rootMenu() === this) this.openBreadcrumb(this.opener?.previousElementSibling);
+        if (this.rootMenu() === this) this.openBreadcrumb(this.crumb?.prev());
         return false;
     }
 
@@ -162,10 +163,10 @@ export class FolderMenu extends PopupMenu implements HoverParent {
         return this.items.findIndex(i => i.dom.dataset.filePath === filePath);
     }
 
-    openBreadcrumb(element: Element) {
-        if (element && this.rootMenu() === this) {
-            const prevExplorable = this.opener.previousElementSibling;
-            (element as HTMLDivElement).click()
+    openBreadcrumb(crumb: Breadcrumb) {
+        if (crumb && this.rootMenu() === this) {
+            this.hide();
+            crumb.open();
             return false;
         }
     }
@@ -176,7 +177,7 @@ export class FolderMenu extends PopupMenu implements HoverParent {
             if (file !== this.selectedFile) {
                 this.onClickFile(file, this.currentItem().dom);
             } else {
-                this.openBreadcrumb(this.opener?.nextElementSibling);
+                this.openBreadcrumb(this.crumb?.next());
             }
         } else if (file instanceof TFile) {
             const pop = this.hoverPopover;
@@ -382,18 +383,33 @@ export class FolderMenu extends PopupMenu implements HoverParent {
             // Position the popover so it doesn't overlap the menu horizontally (as long as it fits)
             // and so that its vertical position overlaps the selected menu item (placing the top a
             // bit above the current item, unless it would go off the bottom of the screen)
-            const hoverEl = popover.hoverEl;
-            hoverEl.show();
-            const
-                menu = this.dom.getBoundingClientRect(),
-                selected = this.currentItem().dom.getBoundingClientRect(),
-                container = hoverEl.offsetParent || this.dom.ownerDocument.documentElement,
-                popupHeight = hoverEl.offsetHeight,
-                left = Math.min(menu.right + 2, container.clientWidth - hoverEl.offsetWidth),
-                top = Math.min(Math.max(0, selected.top - popupHeight/8), container.clientHeight - popupHeight)
-            ;
-            hoverEl.style.top = top + "px";
-            hoverEl.style.left = left + "px";
+            const reposition = () => {
+                const hoverEl = popover.hoverEl;
+                //hoverEl.show();
+                let
+                    menu = this.dom.getBoundingClientRect(),
+                    selected = this.currentItem().dom.getBoundingClientRect(),
+                    container = hoverEl.offsetParent || this.dom.ownerDocument.documentElement,
+                    popupHeight = hoverEl.offsetHeight,
+                    left = Math.min(menu.right + 2, container.clientWidth - hoverEl.offsetWidth),
+                    top = Math.min(Math.max(0, selected.top - popupHeight/8), container.clientHeight - popupHeight)
+                ;
+                if (left < menu.left + (menu.width / 3) && menu.left > hoverEl.offsetWidth) {
+                    // Popover hides too much of menu - move it to the left side
+                    left = menu.left - hoverEl.offsetWidth;
+                }
+                popover.position({x: left, y: top});
+                hoverEl.style.top = top + "px";
+                hoverEl.style.left = left + "px";
+            }
+            if ("onShowCallback" in popover) {
+                around(popover as any, {onShowCallback(old) {
+                    return function() {
+                        this.hoverEl.win.requestAnimationFrame(reposition);
+                        return old?.call(this);
+                    }
+                }})
+            } else this.dom.win.requestAnimationFrame(reposition);
         }
     }
 
@@ -427,7 +443,7 @@ export class FolderMenu extends PopupMenu implements HoverParent {
             }
         } else if (file === this.selectedFile) {
             // Targeting the initially-selected subfolder: go to next breadcrumb
-            this.openBreadcrumb(this.opener?.nextElementSibling);
+            this.openBreadcrumb(this.crumb?.next());
         } else {
             // Otherwise, pop a new menu for the subfolder
             const folderMenu = new FolderMenu(this, file as TFolder, folderNoteFor(file as TFolder));

@@ -208,8 +208,8 @@ export class PopupMenu extends (Menu as new (app: App) => Menu) { // XXX fixme w
     }
 
     cascade(target: HTMLElement, event?: MouseEvent, onClose?: () => any, hOverlap = 15, vOverlap = 5) {
-        const {left, right, top, bottom, width} = target.getBoundingClientRect();
-        const centerX = left+Math.min(150, width/3), centerY = (top+bottom)/2;
+        const {left, top, bottom, width} = target.getBoundingClientRect();
+        const centerX = left + (target.matchParent(".menu") ? Math.min(150, width/3) : 0);
         const win = window.activeWindow ?? window, {innerHeight, innerWidth} = win;
 
         // Try to cascade down and to the right from the mouse or horizontal center
@@ -217,16 +217,22 @@ export class PopupMenu extends (Menu as new (app: App) => Menu) { // XXX fixme w
         const point = {x: event ? event.clientX  - hOverlap : centerX , y: bottom - vOverlap};
 
         // Measure the menu and see if it fits
+        this.sort?.();
         win.document.body.appendChild(this.dom);
         const {offsetWidth, offsetHeight} = this.dom;
         const fitsBelow = point.y + offsetHeight < innerHeight;
+        const fitsAbove = top - vOverlap - offsetHeight > 0;
         const fitsRight = point.x + offsetWidth <= innerWidth;
 
         // If it doesn't fit underneath us, position it at the bottom of the screen, unless
         // the clicked item is close to the bottom (in which case, position it above so
         // the item will still be visible.)
         if (!fitsBelow) {
-            point.y = (bottom > innerHeight - (bottom-top)) ? top + vOverlap: innerHeight;
+            if (fitsAbove) {
+                point.y = top - vOverlap;
+            } else {
+                point.y = (bottom > innerHeight - (bottom-top)) ? top + vOverlap: innerHeight;
+            }
         }
 
         // If it doesn't fit to the right, then position it at the right edge of the screen,

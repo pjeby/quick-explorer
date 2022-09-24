@@ -1,8 +1,8 @@
-import { App, FileView, Notice, Plugin, requireApiVersion, TAbstractFile, TFile, TFolder } from "obsidian";
+import { App, FileView, requireApiVersion, TAbstractFile, TFile, TFolder, WorkspaceLeaf } from "obsidian";
 import { list, el, mount, unmount } from "redom";
 import { ContextMenu } from "./ContextMenu";
 import { FolderMenu } from "./FolderMenu";
-import { PerWindowComponent, statusBarItem } from "@ophidian/core";
+import { onElement, PerWindowComponent, statusBarItem } from "@ophidian/core";
 
 export const hoverSource = "quick-explorer:folder-menu";
 
@@ -39,12 +39,16 @@ class Explorable {
 export class Explorer extends PerWindowComponent {
     lastFile: TAbstractFile = null;
     lastPath: string = null;
+    lastMenu: FolderMenu;
+
     el: HTMLElement = <div id="quick-explorer" />;
     list = list(this.el, Explorable);
     isOpen = 0
     app = app;
 
     onload() {
+        // Try to close any open menu before unloading
+        this.register(() => this.lastMenu?.hide());
         if (requireApiVersion("0.15.6")) {
             const originalTitleEl = this.win.document.body.find(".titlebar .titlebar-inner .titlebar-text");
             const titleEl = originalTitleEl?.cloneNode(true) as HTMLElement;
@@ -57,6 +61,29 @@ export class Explorer extends PerWindowComponent {
         }
 
         if (requireApiVersion("0.16.0")) this.win.document.body.addClass("obsidian-themepocalypse");
+
+        if (requireApiVersion("0.16.3")) {
+            const selector = ".view-header .view-header-breadcrumb, .view-header .view-header-title-parent";
+            this.register(onElement(this.win.document.body, "click", selector, (e, target) => {
+                // Ignore if separator, or if a menu is already open for the item (.is-exploring)
+                // (This allows double-click to open the file explorer)
+                if ((e.target as HTMLElement).matches(".view-header-breadcrumb-separator, .is-exploring")) return;
+                tabCrumb(target)?.open(e);
+                e.stopPropagation();
+                return false;
+            }, {capture: true}));
+            this.register(onElement(
+                this.win.document.body, "contextmenu", ".view-header .view-header-breadcrumb", (e, target) => {
+                    if ((e.target as HTMLElement).matches(".view-header-breadcrumb-separator")) return;
+                    const folder = tabCrumb(target)?.file?.parent;
+                    if (folder) {
+                        new ContextMenu(this.app, folder).cascade(target, e);
+                        e.stopImmediatePropagation();
+                        return false;
+                    }
+                }, {capture: true}
+            ));
+        }
 
         const buttonContainer = this.win.document.body.find(
             "body:not(.is-hidden-frameless) .titlebar .titlebar-button-container.mod-left"
@@ -97,15 +124,23 @@ export class Explorer extends PerWindowComponent {
         if (file === this.lastFile) this.update();
     }
 
+    visibleCrumb(opener: HTMLElement) {
+        let crumb = explorableCrumb(this, opener);
+        if (!opener.isShown()) {
+            const altOpener = app.workspace.getActiveViewOfType(FileView).containerEl.find(
+                ".view-header .view-header-title-parent"
+            );
+            if (altOpener?.isShown()) {
+                const {file} = crumb;
+                crumb = tabCrumb(altOpener);
+                crumb = crumb.peers.find(c => c.file === file) || crumb;
+            }
+        }
+        return crumb;
+    }
+
     folderMenu(opener: HTMLElement = this.el.firstElementChild as HTMLElement, event?: MouseEvent) {
-        const { filePath, parentPath } = opener.dataset
-        const selected = this.app.vault.getAbstractFileByPath(filePath);
-        const folder = this.app.vault.getAbstractFileByPath(parentPath) as TFolder;
-        this.isOpen++;
-        return new FolderMenu(this.app, folder, selected, opener).cascade(opener, event, () => {
-            this.isOpen--;
-            if (!this.isOpen && this.isCurrent()) this.update(this.app.workspace.getActiveFile());
-        });
+        return this.lastMenu =  this.visibleCrumb(opener)?.open(event);
     }
 
     browseVault() {
@@ -154,13 +189,85 @@ export class Explorer extends PerWindowComponent {
         if (file == this.lastFile && file.path == this.lastPath) return;
         this.lastFile = file;
         this.lastPath = file.path;
-        const parts = [];
-        while (file) {
-            parts.unshift({ file, path: file.path });
-            file = file.parent;
-        }
-        if (parts.length > 1) parts.shift();
+        const parts = hierarchy(file);
         this.list.update(parts);
     }
 
+}
+
+export class Breadcrumb {
+    constructor(
+        public peers: Breadcrumb[],
+        public el: HTMLElement,
+        public file: TAbstractFile,
+        public onOpen?: (crumb: Breadcrumb) => any,
+        public onClose?: (crumb: Breadcrumb) => any,
+    ) {
+        peers.push(this);
+    }
+    next() {
+        const i = this.peers.indexOf(this);
+        if (i>-1) return this.peers[i+1];
+    }
+    prev() {
+        const i = this.peers.indexOf(this);
+        if (i>0) return this.peers[i-1];
+    }
+    open(e?: MouseEvent) {
+        const selected = this.file;
+        if (selected) {
+            this.onOpen?.(this)
+            const folder = this.file.parent || selected as TFolder;
+            return new FolderMenu(app, folder, selected, this).cascade(
+                this.el, e && e.isTrusted && e, () => this.onClose(this)
+            );
+        }
+    }
+}
+
+function tabCrumb(opener: HTMLElement) {
+    const crumbs: Breadcrumb[] = [];
+    const leafEl = opener.matchParent(".workspace-leaf");
+    let leaf: WorkspaceLeaf, crumb: Breadcrumb;
+    app.workspace.iterateAllLeaves(l => l.containerEl === leafEl && (leaf = l) && true);
+    const file = (leaf?.view as FileView)?.file;
+    const tree = hierarchy(file);
+    const parent = opener.matchParent(".view-header-title-parent");
+    crumb = new Breadcrumb(crumbs, parent as HTMLElement, tree.shift().file, onOpen, onClose);
+    for (const el of parent.findAll(".view-header-breadcrumb")) {
+        new Breadcrumb(crumbs, el, tree.shift().file, onOpen, onClose);
+        if (el === opener) crumb = crumbs[crumbs.length-1];
+    }
+    return crumb;
+    function onOpen(crumb: Breadcrumb) { crumb.el.toggleClass("is-exploring", true); }
+    function onClose(crumb: Breadcrumb) { crumb.el.toggleClass("is-exploring", false); }
+}
+
+function explorableCrumb(explorer: Explorer, opener: HTMLElement) {
+    const crumbs: Breadcrumb[] = [];
+    const parent = opener.matchParent("#quick-explorer");
+    let crumb: Breadcrumb;
+    for (const el of parent.findAll(".explorable")) {
+        new Breadcrumb(crumbs, el, app.vault.getAbstractFileByPath(el.dataset.filePath), onOpen, onClose);
+        if (el === opener) crumb = crumbs[crumbs.length-1];
+    }
+    return crumb;
+    function onOpen() {
+        explorer.isOpen++;
+    }
+    function onClose() {
+        explorer.isOpen--;
+        explorer.lastMenu = null;
+        if (!explorer.isOpen && explorer.isCurrent()) explorer.update(app.workspace.getActiveFile());
+    }
+}
+
+function hierarchy(file: TAbstractFile) {
+    const parts = [];
+    while (file) {
+        parts.unshift({ file, path: file.path });
+        file = file.parent;
+    }
+    if (parts.length > 1) parts.shift();
+    return parts;
 }

@@ -14,6 +14,11 @@ settings:
               value: qe-title-center
             - label: Hide it entirely
               value: qe-title-hide
+
+    -   id: qe-hide-breadcrumbs
+        title: Hide Quick Explorer
+        description: Hide quick explorer (and use tab titlebar breadcrumbs on 0.16)
+        type: class-toggle
 */
 
 .titlebar-button-container.mod-left {
@@ -32,7 +37,7 @@ body.qe-title-hide .titlebar-text.qe-replacement {
 }
 
 // On Obsidian 0.16, conform to local style
-body.obsidian-themepocalypse {
+body.obsidian-themepocalypse:not(.qe-hide-breadcrumbs) {
     #quick-explorer {
         display: inherit;
         .explorable {
@@ -41,9 +46,13 @@ body.obsidian-themepocalypse {
     }
 }
 
+// Hide QE if requested
+body.qe-hide-breadcrumbs #quick-explorer { display: none; }
+
+
 // Put QE on status bar, far to the left, if native or hidden frame
-body.is-frameless.is-hidden-frameless .status-bar,
-body:not(.is-frameless) .status-bar {
+body.is-frameless.is-hidden-frameless:not(.qe-hide-breadcrumbs) .status-bar,
+body:not(.is-frameless):not(.qe-hide-breadcrumbs) .status-bar {
     position: static;
     .status-bar-item.left-region {
         order: -9999;
@@ -119,4 +128,18 @@ body:not(.is-frameless) .status-bar {
             opacity: 1;     // make it more visible for the current item
         }
     }
+}
+
+/* Built-in Breadcrumbs (0.16.3+) */
+.view-header-title-parent::before {
+    content: "/";
+    padding: 2px 1px;
+    color: var(--text-faint);
+}
+
+.view-header-breadcrumb.is-exploring,
+.view-header-title-parent.is-exploring::before
+{
+    background-color: var(--background-modifier-hover);
+    color: var(--text-normal);
 }
