@@ -353,6 +353,7 @@ export class FolderMenu extends PopupMenu implements HoverParent {
 
     set hoverPopover(popover) {
         const old = this._popover;
+        if (popover === old) return;
         if (old && popover !== old) {
             this._popover = null;
             old.onHover = false;   // Force unpinned Hover Editors to close
@@ -385,7 +386,7 @@ export class FolderMenu extends PopupMenu implements HoverParent {
             // bit above the current item, unless it would go off the bottom of the screen)
             const reposition = () => {
                 const hoverEl = popover.hoverEl;
-                //hoverEl.show();
+                if (!hoverEl.parentElement) return;  // don't re-show/position a hidden popover
                 let
                     menu = this.dom.getBoundingClientRect(),
                     selected = this.currentItem().dom.getBoundingClientRect(),
@@ -404,9 +405,9 @@ export class FolderMenu extends PopupMenu implements HoverParent {
             }
             if ("onShowCallback" in popover) {
                 around(popover as any, {onShowCallback(old) {
-                    return function() {
-                        this.hoverEl.win.requestAnimationFrame(reposition);
-                        return old?.call(this);
+                    return () => {
+                        popover.hoverEl.win.requestAnimationFrame(reposition);
+                        return old?.call(popover);
                     }
                 }})
             } else this.dom.win.requestAnimationFrame(reposition);
