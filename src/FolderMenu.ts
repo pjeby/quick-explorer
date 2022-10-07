@@ -52,6 +52,7 @@ export class FolderMenu extends PopupMenu implements HoverParent {
         this.scope.register(["Mod"],   "Enter", this.onEnter.bind(this));
         this.scope.register(["Alt"],   "Enter", this.onKeyboardContextMenu.bind(this));
         this.scope.register([],        "\\",    this.onKeyboardContextMenu.bind(this));
+        this.scope.register([],  "ContextMenu", this.onKeyboardContextMenu.bind(this));
         this.scope.register([],        "F2",    this.doRename.bind(this));
         this.scope.register(["Shift"], "F2",    this.doMove.bind(this));
 
@@ -92,7 +93,18 @@ export class FolderMenu extends PopupMenu implements HoverParent {
         return false;
     }
 
-    onKeyboardContextMenu() {
+    onKeyboardContextMenu(e: KeyboardEvent) {
+        if (e.code === "ContextMenu") {
+            // Browser will fire contextmenu event on keyup unless prevented:
+            e.view.addEventListener("keyup", upHandler, {capture: true});
+            function upHandler(e: KeyboardEvent) {
+                if (e.code === "ContextMenu") {
+                    e.preventDefault();
+                    e.view.removeEventListener("keyup", upHandler, {capture: true});
+                    return false;
+                }
+            }
+        }
         const target = this.items[this.selected]?.dom, file = target && this.fileForDom(target);
         if (file) new ContextMenu(this, file).cascade(target);
         return false;
