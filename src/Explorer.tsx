@@ -1,4 +1,4 @@
-import { App, FileView, requireApiVersion, TAbstractFile, TFile, TFolder, WorkspaceLeaf } from "obsidian";
+import { App, FileView, requireApiVersion, TAbstractFile, TFile, TFolder, WorkspaceLeaf } from "./obsidian";
 import { list, el, mount, unmount } from "redom";
 import { ContextMenu } from "./ContextMenu";
 import { FolderMenu } from "./FolderMenu";

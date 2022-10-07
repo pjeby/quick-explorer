@@ -1,10 +1,5 @@
-import { Keymap, Modal, Notice, TAbstractFile, TFile, TFolder, View } from "obsidian";
+import { Keymap, Modal, Notice, TAbstractFile, TFile, TFolder, View } from "./obsidian";
 import { PopupMenu, MenuParent } from "./menus";
-import {i18n} from "i18next";
-
-declare global {
-    const i18next: i18n
-}
 
 declare module "obsidian" {
     interface App {

@@ -1,4 +1,4 @@
-import {MenuItem, Plugin, TFolder} from "obsidian";
+import {MenuItem, Plugin, TFolder} from "./obsidian";
 import {use, command, addCommands, isLeafAttached, StyleSettings} from "@ophidian/core";
 import {Explorer, hoverSource} from "./Explorer";
 

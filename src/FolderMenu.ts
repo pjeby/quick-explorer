@@ -1,4 +1,4 @@
-import { TAbstractFile, TFile, TFolder, Keymap, Notice, HoverParent, debounce, WorkspaceSplit, HoverPopover, FileView, MarkdownView } from "obsidian";
+import { TAbstractFile, TFile, TFolder, Keymap, Notice, HoverParent, debounce, WorkspaceSplit, HoverPopover, FileView, MarkdownView } from "./obsidian";
 import { Breadcrumb, hoverSource, startDrag } from "./Explorer";
 import { PopupMenu, MenuParent } from "./menus";
 import { ContextMenu } from "./ContextMenu";
