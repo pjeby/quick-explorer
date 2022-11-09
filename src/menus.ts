@@ -33,11 +33,20 @@ declare module "obsidian" {
     }
 }
 
+class SearchableMenuItem extends (MenuItem as unknown as new (menu: Menu) => MenuItem) {
+    title: string
+    setTitle(title: string | DocumentFragment): this {
+        this.title = typeof title === "string" ? title : title.textContent;
+        return super.setTitle(title);
+    }
+}
+
 export type MenuParent = App | PopupMenu;
 
 export class PopupMenu extends (Menu as new (app: App) => Menu) { // XXX fixme when 0.15.6 is required
     /** The child menu popped up over this one */
     child: Menu
+    items: SearchableMenuItem[]
 
     match: string = ""
     resetSearchOnTimeout = debounce(() => {this.match = "";}, 1500, true)
@@ -98,7 +107,7 @@ export class PopupMenu extends (Menu as new (app: App) => Menu) { // XXX fixme w
 
     // Override to avoid having a mouseover event handler
     addItem(cb: (i: MenuItem) => any) {
-        const i = new (MenuItem as unknown as new (menu: Menu) => MenuItem)(this);
+        const i = new SearchableMenuItem(this);
         this.items.push(i);
         cb(i);
         if (this._loaded && this.sort) this.sort();
@@ -130,7 +139,7 @@ export class PopupMenu extends (Menu as new (app: App) => Menu) { // XXX fixme w
         let pos = Math.min(0, this.selected);
         for (let i=this.items.length; i; ++pos, i--) {
             if (this.items[pos]?.disabled) continue;
-            if (this.items[pos]?.dom.textContent.match(pattern)) {
+            if (this.items[pos]?.title?.match(pattern)) {
                 this.select(pos);
                 return true;
             }
