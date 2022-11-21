@@ -33,7 +33,7 @@ declare module "obsidian" {
     }
 }
 
-class SearchableMenuItem extends (MenuItem as unknown as new (menu: Menu) => MenuItem) {
+export class SearchableMenuItem extends (MenuItem as unknown as new (menu: Menu) => MenuItem) {
     title: string
     setTitle(title: string | DocumentFragment): this {
         this.title = typeof title === "string" ? title : title.textContent;
@@ -51,7 +51,6 @@ export class PopupMenu extends (Menu as new (app: App) => Menu) { // XXX fixme w
     match: string = ""
     resetSearchOnTimeout = debounce(() => {this.match = "";}, 1500, true)
     visible: boolean = false
-    firstMove: boolean = false
 
     constructor(public parent: MenuParent, public app: App = parent instanceof App ? parent : parent.app) {
         super(app);
@@ -90,14 +89,21 @@ export class PopupMenu extends (Menu as new (app: App) => Menu) { // XXX fixme w
         super.onload();
         this.visible = true;
         this.showSelected();
-        this.firstMove = true;
+        let lastX:number, lastY: number;
         // We wait until now to register so that any initial mouseover of the old mouse position will be skipped
         this.register(onElement(this.dom, "mouseover", ".menu-item", (event: MouseEvent, target: HTMLDivElement) => {
-            if (!this.firstMove && !target.hasClass("is-disabled") && !this.child) {
-                this.select(this.items.findIndex(i => i.dom === target), false);
+            if (lastX !== event.clientX || lastY !== event.clientY) {
+                if (!target.hasClass("is-disabled") && !this.child) {
+                    this.onItemHover(this.items.find(i => i.dom === target), event, target);
+                }
             }
-            this.firstMove = false;
+            lastX = event.clientX;
+            lastY = event.clientY;
         }));
+    }
+
+    onItemHover(item: SearchableMenuItem, event?: MouseEvent, target?: HTMLDivElement) {
+        this.select(this.items.indexOf(item), false);
     }
 
     onunload() {
@@ -119,7 +125,7 @@ export class PopupMenu extends (Menu as new (app: App) => Menu) { // XXX fixme w
         if (event.key.length === 1 && !event.isComposing && (!mod || mod === "Shift") ) {
             let match = this.match + event.key;
             // Throw away pieces of the match until something matches or nothing's left
-            while (match && !this.searchFor(match)) match = match.substr(1);
+            while (match && !this.searchFor(match)) match = match.slice(1);
             this.match = match;
             this.resetSearchOnTimeout();
         }

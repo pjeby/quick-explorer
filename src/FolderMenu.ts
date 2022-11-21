@@ -1,6 +1,6 @@
 import { TAbstractFile, TFile, TFolder, Keymap, Notice, HoverParent, debounce, WorkspaceSplit, HoverPopover, FileView, MarkdownView } from "./obsidian";
 import { Breadcrumb, hoverSource, startDrag } from "./Explorer";
-import { PopupMenu, MenuParent } from "./menus";
+import { PopupMenu, MenuParent, SearchableMenuItem } from "./menus";
 import { ContextMenu } from "./ContextMenu";
 import { around } from "monkey-around";
 import { onElement, windowForDom } from "@ophidian/core";
@@ -67,7 +67,6 @@ export class FolderMenu extends PopupMenu implements HoverParent {
         dom.on("click",       menuItem, this.onItemClick, true);
         dom.on("auxclick",    menuItem, this.onItemClick, true);
         dom.on("contextmenu", menuItem, this.onItemMenu );
-        dom.on('mouseover'  , menuItem, this.onItemHover);
         dom.on("mousedown",   menuItem, e => {e.stopPropagation()}, true);  // Fix drag cancelling
         dom.on('dragstart',   menuItem, (event, target) => {
             startDrag(this.app, target.dataset.filePath, event);
@@ -344,7 +343,10 @@ export class FolderMenu extends PopupMenu implements HoverParent {
         ));
     }, 50, true)
 
-    onItemHover = (event: MouseEvent, targetEl: HTMLDivElement) => {
+
+    onItemHover(item: SearchableMenuItem, event: MouseEvent, targetEl: HTMLDivElement) {
+        super.onItemHover(item, event, targetEl);
+        if (!targetEl.matches(".menu-item[data-file-path]")) return;
         if (!autoPreview) this.maybeHover(targetEl, file => this.app.workspace.trigger('hover-link', {
             event, source: hoverSource, hoverParent: this, targetEl, linktext: file.path
         }));
