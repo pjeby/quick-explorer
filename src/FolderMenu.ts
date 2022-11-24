@@ -11,6 +11,7 @@ declare module "obsidian" {
         position(pos?: {x: number, y: number}): void
         hide(): void
         onHover: boolean
+        onTarget: boolean
         isPinned?: boolean
         abortController?: Component
         targetEl?: HTMLElement
@@ -370,8 +371,8 @@ export class FolderMenu extends PopupMenu implements HoverParent {
         if (popover === old) return;
         if (old && popover !== old) {
             this._popover = null;
-            old.onHover = false;   // Force unpinned Hover Editors to close
-            if (!old.isPinned) old.hide();
+            old.onHover = old.onTarget = false;   // Force unpinned Hover Editors to close
+            if (!old.isPinned || autoPreview) old.hide();
         }
         if (popover && !this.canShowPopover()) {
             popover.onHover = false;   // Force unpinned Hover Editors to close
@@ -416,6 +417,8 @@ export class FolderMenu extends PopupMenu implements HoverParent {
                 popover.position({x: left, y: top});
                 hoverEl.style.top = top + "px";
                 hoverEl.style.left = left + "px";
+                // Keep hover editor from closing even if mouse moves away
+                popover.togglePin?.(true);
             }
             if ("onShowCallback" in popover) {
                 around(popover as any, {onShowCallback(old) {
