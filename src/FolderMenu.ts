@@ -197,6 +197,7 @@ export class FolderMenu extends PopupMenu implements HoverParent {
                 this.app.workspace.iterateLeaves(leaf => {
                     if (leaf.view instanceof FileView && leaf.view.file === file) {
                         pop.togglePin(true);  // Ensure the popup won't close
+                        this._popover = null;
                         this.onEscape();      // when we close
                         if (leaf.view instanceof MarkdownView) {
                             // Switch to edit mode -- keyboard's not much good without it!
@@ -271,6 +272,7 @@ export class FolderMenu extends PopupMenu implements HoverParent {
             onElement(this.dom.ownerDocument.body, "mousedown", ".hover-popover", (e, t) => {
                 if (this.hoverPopover?.hoverEl === t) {
                     this.hoverPopover.togglePin?.(true);
+                    this._popover = null;
                 }
             }, {capture: true})
         );
