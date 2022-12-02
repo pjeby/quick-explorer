@@ -269,7 +269,7 @@ export class FolderMenu extends PopupMenu implements HoverParent {
     onload() {
         super.onload();
         this.register(
-            onElement(this.dom.ownerDocument.body, "mousedown", ".hover-popover", (e, t) => {
+            onElement(this.dom.ownerDocument.body, "pointerdown", ".hover-popover", (e, t) => {
                 if (this.hoverPopover?.hoverEl === t) {
                     this.hoverPopover.togglePin?.(true);
                     this._popover = null;
