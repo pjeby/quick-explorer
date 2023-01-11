@@ -1,4 +1,4 @@
-import { App, FileView, requireApiVersion, TAbstractFile, TFile, TFolder, WorkspaceLeaf } from "./obsidian";
+import { App, FileView, requireApiVersion, TAbstractFile, TFile, TFolder, View, WorkspaceLeaf } from "./obsidian";
 import { list, el, mount, unmount } from "redom";
 import { ContextMenu } from "./ContextMenu";
 import { FolderMenu } from "./FolderMenu";
@@ -127,7 +127,7 @@ export class Explorer extends PerWindowComponent {
     visibleCrumb(opener: HTMLElement) {
         let crumb = explorableCrumb(this, opener);
         if (!opener.isShown()) {
-            const altOpener = app.workspace.getActiveViewOfType(FileView).containerEl.find(
+            const altOpener = app.workspace.getActiveViewOfType(View).containerEl.find(
                 ".view-header .view-header-title-parent"
             );
             if (altOpener?.isShown()) {
@@ -230,12 +230,13 @@ function tabCrumb(opener: HTMLElement) {
     const leafEl = opener.matchParent(".workspace-leaf");
     let leaf: WorkspaceLeaf, crumb: Breadcrumb;
     app.workspace.iterateAllLeaves(l => l.containerEl === leafEl && (leaf = l) && true);
-    const file = (leaf?.view as FileView)?.file;
+    const root = app.vault.getAbstractFileByPath("/");
+    const file = (leaf?.view as FileView)?.file ?? root;
     const tree = hierarchy(file);
     const parent = opener.matchParent(".view-header-title-parent");
-    crumb = new Breadcrumb(crumbs, parent as HTMLElement, tree.shift().file, onOpen, onClose);
+    crumb = new Breadcrumb(crumbs, parent as HTMLElement, tree.shift()?.file ?? root, onOpen, onClose);
     for (const el of parent.findAll(".view-header-breadcrumb")) {
-        new Breadcrumb(crumbs, el, tree.shift().file, onOpen, onClose);
+        new Breadcrumb(crumbs, el, tree.shift()?.file ?? root, onOpen, onClose);
         if (el === opener) crumb = crumbs[crumbs.length-1];
     }
     return crumb;
