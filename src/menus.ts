@@ -224,7 +224,7 @@ export class PopupMenu extends (Menu as new (app: App) => Menu) { // XXX fixme w
 
     cascade(target: HTMLElement, event?: MouseEvent, onClose?: () => any, hOverlap = 15, vOverlap = 5) {
         const {left, top, bottom, width} = target.getBoundingClientRect();
-        const centerX = left + (target.matchParent(".menu") ? Math.min(150, width/3) : 0);
+        const centerX = Math.max(0, left + (target.matchParent(".menu") ? Math.min(150, width/3) : 0));
         const win = window.activeWindow ?? window, {innerHeight, innerWidth} = win;
 
         // Try to cascade down and to the right from the mouse or horizontal center
