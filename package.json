@@ -5,10 +5,10 @@
     },
     "license": "ISC",
     "devDependencies": {
-        "@ophidian/build": "^1.0.1",
-        "@ophidian/core": "git://github.com/ophidian-lib/core.git",
-        "monkey-around": "^2.1",
-        "obsidian": "0.15.9",
+        "@ophidian/build": "^1.2",
+        "@ophidian/core": "0.0.24",
+        "monkey-around": "^3",
+        "obsidian": "1.3.5",
         "redom": "^3.27.1"
     }
 }

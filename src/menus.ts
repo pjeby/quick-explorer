@@ -17,7 +17,6 @@ declare module "obsidian" {
         onArrowUp(e: KeyboardEvent): false
 
         sort?(): void
-        setUseNativeMenu?(flag: boolean): void;  // 0.16 to force HTML menu
         onMouseOver?(): void;
     }
 
@@ -59,14 +58,18 @@ export class PopupMenu extends (Menu as new (app: App) => Menu) { // XXX fixme w
 
         this.scope = new Scope;
         this.scope.register([], "ArrowUp",   this.onArrowUp.bind(this));
+        this.scope.register(["Mod"], "k",    this.onArrowUp.bind(this));
         this.scope.register([], "ArrowDown", this.onArrowDown.bind(this));
+        this.scope.register(["Mod"], "j",    this.onArrowDown.bind(this));
         this.scope.register([], "Enter",     this.onEnter.bind(this));
         this.scope.register([], "Escape",    this.onEscape.bind(this));
         this.scope.register([], "ArrowLeft", this.onArrowLeft.bind(this));
+        this.scope.register(["Mod"], "h",    this.onArrowLeft.bind(this));
 
         this.scope.register([], "Home", this.onHome.bind(this));
         this.scope.register([], "End",  this.onEnd.bind(this));
         this.scope.register([], "ArrowRight", this.onArrowRight.bind(this));
+        this.scope.register(["Mod"], "l",     this.onArrowRight.bind(this));
 
         // Make obsidian.Menu think mousedowns on our child menu(s) are happening
         // on us, so we won't close before an actual click occurs

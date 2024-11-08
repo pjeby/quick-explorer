@@ -1,5 +1,6 @@
 ## Quick Explorer for Obsidian
 
+> New in 0.2.11: Vim-style navigation hotkeys: Mod+h/j/k/l (Mod=Cmd on Mac, Ctrl on PC)
 > New in 0.2.0: If you're using Obsidian 0.16.3 and have tab titlebars turned on, Quick Explorer can use them in addition to (or in place of) the main title bar or status bar. If you want to hide QE's default breadcrumbs, you can turn them off using the [Style Settings](https://github.com/mgmeyers/obsidian-style-settings) plugin.
 
 [Obsidian](https://obsidian.md)'s in-app file explorer is pretty flexible, but it's almost 100% mouse-driven and not at all keyboard-friendly.  Worse, if you have a lot of folders with lots of files in them, you can spend a lot of time expanding and collapsing folders, and scrolling around to find what you're looking for.  This can be especially annoying when all you want is to do something with the "current" folder, or a parent of it...  *without* needing to open a sidebar and close it again afterwards.  (And last, but not least, trying to rapidly preview the contents of a lot of notes with the mouse is a giant PITA.)
@@ -42,6 +43,7 @@ And an extensive set of keyboard operations is available as well:
 * Typing normal text searches item names within a folder (or context menu), selecting the next matching item
 * Up, Down, Home, and End move within a folder or context menu
 * Left and Right arrows select parent or child folders
+* Vim enjoyer?  Use Mod-j/k for up and down, Mod-h/l for left and right  (Mod=Cmd on Mac, Ctrl on PC)
 * Enter selects an item to open, Ctrl-or-Cmd + Enter opens a file in a new pane
 * Backslash (`\`), the "Context Menu" key, or Alt + Enter opens a context menu for the selected file or folder
 * F2 initiates a rename of the current file or folder, Shift+F2 begins a move
