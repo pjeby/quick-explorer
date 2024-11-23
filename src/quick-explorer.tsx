@@ -1,5 +1,5 @@
 import {MenuItem, Plugin, TFolder} from "./obsidian";
-import {use, command, addCommands, isLeafAttached, StyleSettings} from "@ophidian/core";
+import {app, use, command, addCommands, isLeafAttached, StyleSettings} from "@ophidian/core";
 import {Explorer, hoverSource} from "./Explorer";
 
 import "./redom-jsx";
@@ -71,7 +71,7 @@ export default class QE extends Plugin {
         return () => {
             const curFile = app.workspace.getActiveFile();
             const goFile = curFile && navigateFile(curFile, dir, relative);
-            if (goFile && goFile !== curFile) app.workspace.activeLeaf.openFile(goFile);
+            if (goFile && goFile !== curFile) app.workspace.getLeaf().openFile(goFile);
         }
     }
 
