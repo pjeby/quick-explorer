@@ -1,4 +1,4 @@
-import { TAbstractFile, TFile, TFolder } from "./obsidian";
+import { TAbstractFile, TFile, TFolder } from "./obsidian.ts";
 
 export const previewIcons: Record<string, string> = {
     markdown: "document",

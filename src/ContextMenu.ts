@@ -1,5 +1,5 @@
-import { Keymap, Modal, Notice, TAbstractFile, TFile, TFolder, View } from "./obsidian";
-import { PopupMenu, MenuParent } from "./menus";
+import { Keymap, Notice, TAbstractFile, TFile, TFolder, View } from "./obsidian.ts";
+import { PopupMenu, MenuParent } from "./menus.ts";
 
 declare module "obsidian" {
     interface App {

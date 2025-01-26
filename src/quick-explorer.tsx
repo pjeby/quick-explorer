@@ -1,10 +1,10 @@
-import {MenuItem, Plugin, TFolder} from "./obsidian";
+import {MenuItem, Plugin, TFolder} from "./obsidian.ts";
 import {app, use, command, addCommands, isLeafAttached, StyleSettings} from "@ophidian/core";
-import {Explorer, hoverSource} from "./Explorer";
+import {Explorer, hoverSource} from "./Explorer.tsx";
 
 import "./redom-jsx";
 import "./styles.scss"
-import { navigateFile } from "./file-info";
+import { navigateFile } from "./file-info.ts";
 
 declare module "obsidian" {
     interface Workspace {

@@ -1,4 +1,5 @@
 {
+    "type": "module",
     "scripts": {
         "dev": "node ophidian.config.mjs dev",
         "build": "node ophidian.config.mjs production"

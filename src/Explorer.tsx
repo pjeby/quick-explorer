@@ -1,7 +1,7 @@
-import { App, FileView, requireApiVersion, TAbstractFile, TFile, TFolder, View, WorkspaceLeaf } from "./obsidian";
+import { App, FileView, requireApiVersion, TAbstractFile, TFile, TFolder, View, WorkspaceLeaf } from "./obsidian.ts";
 import { list, el, mount, unmount } from "redom";
-import { ContextMenu } from "./ContextMenu";
-import { FolderMenu } from "./FolderMenu";
+import { ContextMenu } from "./ContextMenu.ts";
+import { FolderMenu } from "./FolderMenu.ts";
 import { onElement, PerWindowComponent, statusBarItem } from "@ophidian/core";
 
 export const hoverSource = "quick-explorer:folder-menu";

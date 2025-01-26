@@ -1,10 +1,10 @@
-import { TAbstractFile, TFile, TFolder, Keymap, Notice, HoverParent, debounce, WorkspaceSplit, HoverPopover, FileView, MarkdownView } from "./obsidian";
-import { Breadcrumb, hoverSource, startDrag } from "./Explorer";
-import { PopupMenu, MenuParent, SearchableMenuItem } from "./menus";
-import { ContextMenu } from "./ContextMenu";
+import { TAbstractFile, TFile, TFolder, Keymap, Notice, HoverParent, debounce, WorkspaceSplit, HoverPopover, FileView, MarkdownView } from "./obsidian.ts";
+import { Breadcrumb, hoverSource, startDrag } from "./Explorer.tsx";
+import { PopupMenu, MenuParent, SearchableMenuItem } from "./menus.ts";
+import { ContextMenu } from "./ContextMenu.ts";
 import { around } from "monkey-around";
 import { onElement, windowForDom } from "@ophidian/core";
-import { fileIcon, folderNoteFor, previewIcons, sortedFiles } from "./file-info";
+import { fileIcon, folderNoteFor, previewIcons, sortedFiles } from "./file-info.ts";
 
 declare module "obsidian" {
     interface HoverPopover {

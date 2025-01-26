@@ -1,4 +1,4 @@
-import {Menu, App, MenuItem, debounce, Keymap, Scope} from "./obsidian";
+import {Menu, App, MenuItem, debounce, Keymap, Scope} from "./obsidian.ts";
 import {around} from "monkey-around";
 
 declare module "obsidian" {
