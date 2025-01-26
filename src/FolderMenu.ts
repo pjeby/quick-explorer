@@ -1,4 +1,4 @@
-import { TAbstractFile, TFile, TFolder, Keymap, Notice, HoverParent, debounce, WorkspaceSplit, HoverPopover, FileView, MarkdownView } from "./obsidian.ts";
+import { TAbstractFile, TFile, TFolder, Keymap, Notice, HoverParent, debounce, WorkspaceSplit, HoverPopover, FileView, MarkdownView, Modal } from "./obsidian.ts";
 import { Breadcrumb, hoverSource, startDrag } from "./Explorer.tsx";
 import { PopupMenu, MenuParent, SearchableMenuItem } from "./menus.ts";
 import { ContextMenu } from "./ContextMenu.ts";
@@ -152,9 +152,20 @@ export class FolderMenu extends PopupMenu implements HoverParent {
             return false;
         }
         this.rootMenu().hide();
-        const modal = explorerPlugin.instance.moveFileModal;
-        modal.setCurrentFile(this.currentFile());
-        modal.open()
+        const file = this.currentFile();
+        const rm = around(Modal.prototype, {
+            open(next) {
+                return function () {
+                    rm()
+                    if (this.files && Array.isArray(this.files) && this.files.length && this.files[0] instanceof TFile) {
+                        this.files = [file]
+                    }
+                    return next.call(this)
+                }
+            }
+        })
+        this.app.commands.executeCommandById("file-explorer:move-file")
+        rm()
         return false;
     }
 

@@ -2,7 +2,11 @@ import { Keymap, Notice, TAbstractFile, TFile, TFolder, View } from "./obsidian.
 import { PopupMenu, MenuParent } from "./menus.ts";
 
 declare module "obsidian" {
+    interface _Commands {
+        executeCommandById(id: string): void
+    }
     interface App {
+        commands: _Commands
         setAttachmentFolder(folder: TFolder): void
         internalPlugins: {
             plugins: {
@@ -10,9 +14,6 @@ declare module "obsidian" {
                     enabled: boolean
                     instance: {
                         revealInFolder(file: TAbstractFile): void
-                        moveFileModal: Modal & {
-                            setCurrentFile(file: TAbstractFile): void
-                        }
                     }
                 }
             }
