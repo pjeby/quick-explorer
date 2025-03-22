@@ -5,6 +5,7 @@ import {Explorer, hoverSource} from "./Explorer.tsx";
 import "./redom-jsx";
 import "./styles.scss"
 import { navigateFile } from "./file-info.ts";
+import { ContextMenu } from "./ContextMenu.ts";
 
 declare module "obsidian" {
     interface Workspace {
@@ -42,10 +43,10 @@ export default class QE extends Plugin {
 
         this.registerEvent(this.app.workspace.on("file-menu", (menu, file, source) => {
             let item: MenuItem
-            if (source !== "quick-explorer") menu.addItem(i => {
+            if (!(menu instanceof ContextMenu)) menu.addItem(i => {
                 i.setIcon("folder").setTitle("Show in Quick Explorer").onClick(e => { this.explorers.forDom(item.dom)?.browseFile(file); });
                 item = i;
-                item.setSection?.("view");
+                item.setSection?.("system")
             })
             if (item) {
                 const revealFile = i18next.t(`plugins.file-explorer.action-reveal-file`);

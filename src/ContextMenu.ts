@@ -41,6 +41,7 @@ export class ContextMenu extends PopupMenu {
         super(parent);
         const { workspace } = this.app;
         const haveFileExplorer = this.app.internalPlugins.plugins["file-explorer"].enabled;
+        (this as any).addSections(["title", "open", "action", "view", "info", "system", "", "danger"])
 
         if (file instanceof TFolder) {
             this.addItem(i => i.setTitle(optName("new-note")).setIcon("create-new").onClick(async e => {
@@ -59,15 +60,16 @@ export class ContextMenu extends PopupMenu {
                     event.stopPropagation();
                 }
             }));
-            this.addItem(i => i.setTitle(optName("set-attachment-folder")).setIcon("image-file").onClick(() => {
+            this.addItem(i => i.setTitle("Set as attachment folder").setIcon("image-file").onClick(() => {
                 this.app.setAttachmentFolder(file);
             }));
             this.addSeparator();
         }
         this.addItem(i => {
-            i.setTitle(optName("rename")).setIcon("pencil").onClick(event => {
+            i.setTitle(optName("rename")).setIcon("pencil").onClick(() => {
                 this.app.fileManager.promptForFileRename(file);
             });
+            i.setSection("danger");
         });
         this.addItem(i => i.setTitle(optName("delete")).setIcon("trash").onClick(() => {
             if (file instanceof TFolder) {
@@ -76,14 +78,14 @@ export class ContextMenu extends PopupMenu {
             else if (file instanceof TFile) {
                 this.app.fileManager.promptForFileDeletion(file);
             }
-        }));
+        }).setSection("danger").dom.classList.add("is-warning"));
         if (file instanceof TFolder && haveFileExplorer) {
             this.addItem(i => i.setIcon("folder").setTitle(i18next.t('plugins.file-explorer.action-reveal-file')).onClick(() => {
                 this.rootMenu().hide();
                 this.withExplorer(file);
             }));
         }
-        workspace.trigger("file-menu", this, file, "quick-explorer");
+        workspace.trigger("file-menu", this, file, "file-explorer-context-menu");
     }
 
     onEnter(event: KeyboardEvent) {

@@ -52,6 +52,7 @@ export class FolderMenu extends PopupMenu implements HoverParent {
         this.scope.register([],        "Tab",   this.togglePreviewMode.bind(this));
         this.scope.register(["Mod"],   "Enter", this.onEnter.bind(this));
         this.scope.register(["Alt"],   "Enter", this.onKeyboardContextMenu.bind(this));
+        this.scope.register(null,      "Enter", this.onEnter.bind(this));
         this.scope.register([],        "\\",    this.onKeyboardContextMenu.bind(this));
         this.scope.register([],  "ContextMenu", this.onKeyboardContextMenu.bind(this));
         this.scope.register([],        "F2",    this.doRename.bind(this));
