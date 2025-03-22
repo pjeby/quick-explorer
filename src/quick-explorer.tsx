@@ -1,11 +1,12 @@
 import {MenuItem, Plugin, TFolder} from "./obsidian.ts";
-import {app, use, command, addCommands, isLeafAttached, StyleSettings} from "@ophidian/core";
+import {app, use, command, addCommands, isLeafAttached, StyleSettings, o} from "@ophidian/core";
 import {Explorer, hoverSource} from "./Explorer.tsx";
 
 import "./redom-jsx";
 import "./styles.scss"
 import { navigateFile } from "./file-info.ts";
 import { ContextMenu } from "./ContextMenu.ts";
+import { around } from "monkey-around";
 
 declare module "obsidian" {
     interface Workspace {
@@ -80,4 +81,20 @@ export default class QE extends Plugin {
         this.app.workspace.unregisterHoverLinkSource(hoverSource);
     }
 
+    async browseAfterModal(fileOrFolder: o.TAbstractFile, openDialog: () => Promise<unknown>) {
+        // Trap closing of the rename dialog so we can explore the folder afterwards
+        let opened = false;
+        const self = this;
+        const remove = around(o.Modal.prototype, {
+            open(old) { return function() { opened = true; return old.call(this); } },
+            close(old) {
+                return function() {
+                    remove();
+                    self.explorers.forWindow()?.browseFile(fileOrFolder, false);
+                    return old.call(this);
+                }
+            }
+        })
+        try { await openDialog(); } finally { opened || remove(); }
+    }
 }

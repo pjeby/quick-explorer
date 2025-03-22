@@ -151,7 +151,7 @@ export class Explorer extends PerWindowComponent {
         return this.folderMenu(this.el.lastElementChild as HTMLDivElement);
     }
 
-    browseFile(file: TAbstractFile) {
+    browseFile(file: TAbstractFile, browseIntoFolder=true) {
         if (file === this.lastFile) return this.browseCurrent();
         let menu: FolderMenu;
         let opener: HTMLElement = this.el.firstElementChild as HTMLElement;
@@ -171,7 +171,7 @@ export class Explorer extends PerWindowComponent {
             const idx = menu.itemForPath(path.join("/"));
             if (idx == -1) break
             menu.select(idx);
-            if (parts.length || file instanceof TFolder) {
+            if (parts.length || (file instanceof TFolder && browseIntoFolder)) {
                 menu.onArrowRight();
                 menu = menu.child as FolderMenu;
             }

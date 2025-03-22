@@ -3,8 +3,9 @@ import { Breadcrumb, hoverSource, startDrag } from "./Explorer.tsx";
 import { PopupMenu, MenuParent, SearchableMenuItem } from "./menus.ts";
 import { ContextMenu } from "./ContextMenu.ts";
 import { around } from "monkey-around";
-import { onElement, windowForDom } from "@ophidian/core";
+import { onElement, windowForDom, the } from "@ophidian/core";
 import { fileIcon, folderNoteFor, previewIcons, sortedFiles } from "./file-info.ts";
+import QE from "./quick-explorer.tsx";
 
 declare module "obsidian" {
     interface HoverPopover {
@@ -142,16 +143,11 @@ export class FolderMenu extends PopupMenu implements HoverParent {
     doRename() {
         const file = this.currentFile()
         this.rootMenu().hide();
-        if (file) this.app.fileManager.promptForFileRename(file);
+        if (file) the(QE).browseAfterModal(file, () => this.app.fileManager.promptForFileRename(file));
         return false;
     }
 
     doMove() {
-        const explorerPlugin = this.app.internalPlugins.plugins["file-explorer"];
-        if (!explorerPlugin.enabled) {
-            new Notice("File explorer core plugin must be enabled to move files or folders");
-            return false;
-        }
         this.rootMenu().hide();
         const file = this.currentFile();
         const rm = around(Modal.prototype, {
@@ -165,8 +161,10 @@ export class FolderMenu extends PopupMenu implements HoverParent {
                 }
             }
         })
-        this.app.commands.executeCommandById("file-explorer:move-file")
-        rm()
+        the(QE).browseAfterModal(file, async () => {
+            this.app.commands.executeCommandById("file-explorer:move-file");
+            rm();
+        })
         return false;
     }
 
@@ -292,13 +290,21 @@ export class FolderMenu extends PopupMenu implements HoverParent {
             if (this.folder === file.parent) this.refreshFiles();
         }));
         this.registerEvent(this.app.vault.on("rename", (file, oldPath) => {
+            const selectedFile = this.itemForPath(oldPath) >= 0 ? file : this.currentFile();
             if (this.folder === file.parent) {
                 // Destination was here; refresh the list
-                const selectedFile = this.itemForPath(oldPath) >= 0 ? file : this.currentFile();
                 this.loadFiles(this.folder, selectedFile);
             } else {
-                // Remove it if it was moved out of here
-                this.removeItemForPath(oldPath);
+                if (file === selectedFile) {
+                    // Current file? Explore it in a new location
+                    this.rootMenu().hide()
+                    const {explorers} = the(QE)
+                    const ex = this.crumb ? explorers.forDom(this.crumb.el) : explorers.forWindow()
+                    ex.browseFile(file, false)
+                } else {
+                    // Remove it if it was moved out of here
+                    this.removeItemForPath(oldPath);
+                }
             }
         }));
         this.registerEvent(this.app.vault.on("delete", file => this.removeItemForPath(file.path)));

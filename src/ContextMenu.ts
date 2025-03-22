@@ -1,5 +1,7 @@
-import { Keymap, Notice, TAbstractFile, TFile, TFolder, View } from "./obsidian.ts";
+import { Keymap, TAbstractFile, TFile, TFolder, View } from "./obsidian.ts";
 import { PopupMenu, MenuParent } from "./menus.ts";
+import { the } from "@ophidian/core";
+import QE from "./quick-explorer.tsx";
 
 declare module "obsidian" {
     interface _Commands {
@@ -22,8 +24,9 @@ declare module "obsidian" {
     interface FileManager {
         promptForFolderDeletion(folder: TFolder): void
         promptForFileDeletion(file: TFile): void
-        promptForFileRename(file: TAbstractFile): void
+        promptForFileRename(file: TAbstractFile): Promise<void>
         createNewMarkdownFile(parentFolder?: TFolder, pattern?: string): Promise<TFile>
+        createNewFolder(parentFolder?: TFolder): Promise<TFolder>
     }
 }
 
@@ -51,13 +54,10 @@ export class ContextMenu extends PopupMenu {
                     active: !0, state: { mode: "source" }, eState: { rename: "all" }
                 })
             }));
-            this.addItem(i => i.setTitle(optName("new-folder")).setIcon("folder").setDisabled(!haveFileExplorer).onClick(event => {
-                if (haveFileExplorer) {
-                    this.rootMenu().hide();
-                    this.withExplorer(file)?.createAbstractFile("folder", file);
-                } else {
-                    new Notice("The File Explorer core plugin must be enabled to create new folders")
-                    event.stopPropagation();
+            this.addItem(i => i.setTitle(optName("new-folder")).setIcon("folder").onClick(async () => {
+                const newFolder = await this.app.fileManager.createNewFolder(file);
+                if (newFolder) {
+                    the(QE).browseAfterModal(newFolder, () => this.app.fileManager.promptForFileRename(newFolder))
                 }
             }));
             this.addItem(i => i.setTitle("Set as attachment folder").setIcon("image-file").onClick(() => {
@@ -67,7 +67,7 @@ export class ContextMenu extends PopupMenu {
         }
         this.addItem(i => {
             i.setTitle(optName("rename")).setIcon("pencil").onClick(() => {
-                this.app.fileManager.promptForFileRename(file);
+                the(QE).browseAfterModal(file, () => this.app.fileManager.promptForFileRename(file))
             });
             i.setSection("danger");
         });
