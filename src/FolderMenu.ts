@@ -358,10 +358,12 @@ export class FolderMenu extends PopupMenu implements HoverParent {
     showPopover = debounce(() => {
         this.hidePopover();
         if (!autoPreview) return;
-        this.maybeHover(this.currentItem()?.dom, file => this.app.workspace.trigger(
-            // Use document.body as targetEl so 0.15.x won't crash on preview
-            'link-hover', this, windowForDom(this.dom).document.body, file.path, ""
-        ));
+        const preview = this.app.internalPlugins.plugins["page-preview"]
+        preview?.enabled && this.maybeHover(this.currentItem()?.dom, file => (
+            preview.enabled && preview?.instance?.onLinkHover(
+                this, windowForDom(this.dom).document.body, file.path, ""
+            )
+        ))
     }, 50, true)
 
 

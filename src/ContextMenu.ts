@@ -18,6 +18,14 @@ declare module "obsidian" {
                         revealInFolder(file: TAbstractFile): void
                     }
                 }
+                "page-preview": {
+                    enabled: boolean
+                    instance: {
+                        onLinkHover(
+                            parent: HoverParent, targetEl: Element, linkText: string, path: string, state?: any
+                        ): void
+                    }
+                }
             }
         }
     }
