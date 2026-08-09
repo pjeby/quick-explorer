@@ -51,6 +51,8 @@ export class FolderMenu extends PopupMenu implements HoverParent {
 
     constructor(public parent: MenuParent, public folder: TFolder, public selectedFile?: TAbstractFile, public crumb?: Breadcrumb) {
         super(parent);
+        this.dom.setAttr("role", "listbox");
+        this.dom.setAttr("aria-label", folder.path || "/");
         this.loadFiles(folder, selectedFile);
         this.scope.register([],        "Tab",   this.togglePreviewMode.bind(this));
         this.scope.register(["Mod"],   "Enter", this.onEnter.bind(this));
@@ -274,6 +276,10 @@ export class FolderMenu extends PopupMenu implements HoverParent {
         });
     }
 
+    itemRole() {
+        return "option";
+    }
+
     togglePreviewMode() {
         autoPreview = !autoPreview
         if (autoPreview) this.showPopover(); else this.hidePopover();
@@ -326,6 +332,7 @@ export class FolderMenu extends PopupMenu implements HoverParent {
         if (this.selected > posn) this.selected -= 1;
         item.dom.detach()
         this.items.remove(item);
+        this.syncActiveDescendant();
     }
 
     onEscape() {
@@ -352,6 +359,7 @@ export class FolderMenu extends PopupMenu implements HoverParent {
             if (autoPreview) this.showPopover(); else this.hidePopover();
         }
     }
+
 
     hidePopover() {
         this.hoverPopover = null;

@@ -100,6 +100,11 @@ export class ContextMenu extends PopupMenu {
     }
 
     onEnter(event: KeyboardEvent) {
+        const item = this.items[this.selected];
+        if (item?.dom.hasClass("has-submenu")) {
+            item.handleEvent(event);
+            return false;
+        }
         this.rootMenu().hide();
         return super.onEnter(event);
     }
