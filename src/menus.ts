@@ -210,7 +210,7 @@ export class PopupMenu extends (Menu as new (app: App) => Menu) { // XXX fixme w
 
     focusMenu() {
         this.syncActiveDescendant();
-        this.dom.ownerDocument.defaultView?.requestAnimationFrame(() => {
+        this.dom.win.requestAnimationFrame(() => {
             if (this.visible) this.dom.focus({preventScroll: true});
         });
     }
