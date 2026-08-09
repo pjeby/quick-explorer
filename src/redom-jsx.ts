@@ -1,6 +1,6 @@
-/* eslint-disable @typescript-eslint/no-namespace */
 import { RedomComponent } from "redom";
 
+/* eslint-disable @typescript-eslint/no-namespace -- namespaces are required for compatibility */
 declare global {
     namespace JSX {
         export type IntrinsicElements = {
@@ -12,3 +12,4 @@ declare global {
         export type Element = HTMLElement
     }
 }
+/* eslint-enable @typescript-eslint/no-namespace -- namespaces are required for compatibility */

@@ -19,10 +19,11 @@ declare module "obsidian" {
         sort?(): void
         onMouseOver?(this: void): void;
     }
-
+    /* eslint-disable @typescript-eslint/no-namespace -- namespaces are required for compatibility */
     export namespace Keymap {
         export function getModifiers(event: Event): string
     }
+    /* eslint-enable @typescript-eslint/no-namespace -- namespaces are required for compatibility */
 
     interface MenuItem {
         dom: HTMLDivElement

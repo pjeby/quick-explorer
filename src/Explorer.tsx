@@ -1,4 +1,4 @@
-import { App, FileView, requireApiVersion, TAbstractFile, TFile, TFolder, View, WorkspaceLeaf } from "./obsidian.ts";
+import { App, FileView, requireApiVersion, TAbstractFile, TConcreteFile, TFile, TFolder, View, WorkspaceLeaf } from "./obsidian.ts";
 import { list, el, mount, unmount } from "redom";
 import { ContextMenu } from "./ContextMenu.ts";
 import { FolderMenu } from "./FolderMenu.ts";
@@ -19,7 +19,7 @@ declare module "obsidian" {
 
 export function startDrag(app: App, path: string, event: DragEvent) {
     if (!path || path === "/") return;
-    const file = app.vault.getAbstractFileByPath(path) as TFile | TFolder;
+    const file = app.vault.getAbstractFileByPath(path) as TConcreteFile;
     if (!file) return;
     const { dragManager } = app;
     const dragData = file instanceof TFile ? dragManager.dragFile(event, file) : dragManager.dragFolder(event, file);

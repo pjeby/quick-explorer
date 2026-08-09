@@ -1,4 +1,4 @@
-import { TAbstractFile, TFile, TFolder, Keymap, Notice, HoverParent, debounce, WorkspaceSplit, HoverPopover, FileView, MarkdownView, Modal } from "./obsidian.ts";
+import { TAbstractFile, TFile, TFolder, Keymap, Notice, HoverParent, debounce, WorkspaceSplit, HoverPopover, FileView, MarkdownView, Modal, TConcreteFile } from "./obsidian.ts";
 import { Breadcrumb, hoverSource, startDrag } from "./Explorer.tsx";
 import { PopupMenu, MenuParent, SearchableMenuItem } from "./menus.ts";
 import { ContextMenu } from "./ContextMenu.ts";
@@ -183,7 +183,7 @@ export class FolderMenu extends PopupMenu implements HoverParent {
 
     fileForDom(targetEl: HTMLDivElement) {
         const filePath = targetEl?.dataset?.filePath;
-        if (filePath) return this.app.vault.getAbstractFileByPath(filePath) as TFile | TFolder;
+        if (filePath) return this.app.vault.getAbstractFileByPath(filePath) as TConcreteFile;
     }
 
     itemForPath(filePath: string) {
@@ -455,7 +455,7 @@ export class FolderMenu extends PopupMenu implements HoverParent {
                 popover.togglePin?.(true);
             }
             if ("onShowCallback" in popover) {
-                around(popover as unknown, {onShowCallback(old: (this: HoverPopover) => unknown) {
+                around(popover, {onShowCallback(old: (this: HoverPopover) => unknown) {
                     return () => {
                         popover.hoverEl.win.requestAnimationFrame(reposition);
                         return old?.call(popover);
