@@ -1,4 +1,5 @@
 import { Keymap, TAbstractFile, TFile, TFolder, View } from "./obsidian.ts";
+import * as o from "obsidian";
 import { PopupMenu, MenuParent } from "./menus.ts";
 import { the } from "@ophidian/core";
 import QE from "./quick-explorer.tsx";
@@ -9,20 +10,20 @@ declare module "obsidian" {
     }
     interface App {
         commands: _Commands
-        setAttachmentFolder(folder: TFolder): void
+        setAttachmentFolder(folder: o.TFolder): void
         internalPlugins: {
             plugins: {
                 "file-explorer": {
                     enabled: boolean
                     instance: {
-                        revealInFolder(file: TAbstractFile): void
+                        revealInFolder(file: o.TAbstractFile): void
                     }
                 }
                 "page-preview": {
                     enabled: boolean
                     instance: {
                         onLinkHover(
-                            parent: HoverParent, targetEl: Element, linkText: string, path: string, state?: unknown
+                            parent: o.HoverParent, targetEl: Element, linkText: string, path: string, state?: unknown
                         ): void
                     }
                 }
@@ -30,11 +31,11 @@ declare module "obsidian" {
         }
     }
     interface FileManager {
-        promptForFolderDeletion(folder: TFolder): void
-        promptForFileDeletion(file: TFile): void
-        promptForFileRename(file: TAbstractFile): Promise<void>
-        createNewMarkdownFile(parentFolder?: TFolder, pattern?: string): Promise<TFile>
-        createNewFolder(parentFolder?: TFolder): Promise<TFolder>
+        promptForFolderDeletion(folder: o.TFolder): void
+        promptForFileDeletion(file: o.TFile): void
+        promptForFileRename(file: o.TAbstractFile): Promise<void>
+        createNewMarkdownFile(parentFolder?: o.TFolder, pattern?: string): Promise<o.TFile>
+        createNewFolder(parentFolder?: o.TFolder): Promise<o.TFolder>
     }
     interface Menu {
         addSections(sections: string[]): void

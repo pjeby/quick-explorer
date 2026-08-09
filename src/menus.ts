@@ -1,4 +1,4 @@
-import {Menu, App, MenuItem, debounce, Keymap, Scope} from "./obsidian.ts";
+import {Menu, App, MenuItem, debounce, Keymap, Scope} from "obsidian";
 import {around} from "monkey-around";
 
 declare module "obsidian" {
@@ -17,10 +17,9 @@ declare module "obsidian" {
         onArrowUp(e: KeyboardEvent): false
 
         sort?(): void
-        onMouseOver?(): void;
+        onMouseOver?(this: void): void;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-namespace
     export namespace Keymap {
         export function getModifiers(event: Event): string
     }
@@ -82,8 +81,7 @@ export class PopupMenu extends (Menu as new (app: App) => Menu) { // XXX fixme w
 
         // Make obsidian.Menu think mousedowns on our child menu(s) are happening
         // on us, so we won't close before an actual click occurs
-        // eslint-disable-next-line @typescript-eslint/no-this-alias
-        const menu = this;
+        const menu = (() => this)();  // eslint yak-shaving
         around(this.dom, {contains(prev){ return function(target: Node) {
             const ret = prev.call(this, target) || menu.child?.dom.contains(target);
             return ret;

@@ -30,8 +30,7 @@ export function folderNotePath(folder: TFolder) {
     return `${folder.path}/${folder.name}.md`;
 }
 
-// eslint-disable-next-line @typescript-eslint/unbound-method
-const alphaSort = new Intl.Collator(undefined, {usage: "sort", sensitivity: "base", numeric: true}).compare;
+const alphaSort = new Intl.Collator(undefined, {usage: "sort", sensitivity: "base", numeric: true})["compare"];
 
 export function sortedFiles(folder: TFolder, allFiles: boolean = app.vault.getConfig("showUnsupportedFiles")) {
     const children = folder.children as Array<TFile|TFolder>;

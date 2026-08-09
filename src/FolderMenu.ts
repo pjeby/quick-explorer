@@ -6,6 +6,7 @@ import { around } from "monkey-around";
 import { onElement, windowForDom, the } from "@ophidian/core";
 import { fileIcon, folderNoteFor, previewIcons, sortedFiles } from "./file-info.ts";
 import QE from "./quick-explorer.tsx";
+import * as o from "obsidian"
 
 declare module "obsidian" {
     interface HoverPopover {
@@ -14,10 +15,10 @@ declare module "obsidian" {
         onHover: boolean
         onTarget: boolean
         isPinned?: boolean
-        abortController?: Component
+        abortController?: o.Component
         targetEl?: HTMLElement
-        onMouseIn(event: MouseEvent): void;
-        onMouseOut(event: MouseEvent): void;
+        onMouseIn: (event: MouseEvent) => void;
+        onMouseOut: (event: MouseEvent) => void;
     }
     interface App {
         viewRegistry: {
@@ -28,11 +29,11 @@ declare module "obsidian" {
     interface Vault {
         getConfig(option: string): unknown
         getConfig(option:"showUnsupportedFiles"): boolean
-        getFileByPath(path: string): TFile | null
-        getFolderByPath(path: string): TFolder | null
+        getFileByPath(path: string): o.TFile | null
+        getFolderByPath(path: string): o.TFolder | null
     }
     interface Workspace {
-        iterateLeaves(callback: (item: WorkspaceLeaf) => unknown, item: WorkspaceParent): boolean;
+        iterateLeaves(callback: (item: o.WorkspaceLeaf) => unknown, item: o.WorkspaceParent): boolean;
     }
 }
 
@@ -86,8 +87,7 @@ export class FolderMenu extends PopupMenu implements HoverParent {
 
         // Make obsidian.Menu think mousedowns on our popups are happening
         // on us, so we won't close before an actual click occurs
-        // eslint-disable-next-line @typescript-eslint/no-this-alias
-        const menu = this;
+        const menu = (() => this)(); // eslint yak-shaving
         around(this.dom, {contains(prev){ return function(target: Node) {
             const ret = prev.call(this, target) || menu._popover?.hoverEl.contains(target);
             return ret;
@@ -157,7 +157,7 @@ export class FolderMenu extends PopupMenu implements HoverParent {
         const file = this.currentFile();
         const rm = around(Modal.prototype, {
             open(next) {
-                return function () {
+                return function (this: {files?: TAbstractFile[]}) {
                     rm()
                     if (this.files && Array.isArray(this.files) && this.files.length && this.files[0] instanceof TFile) {
                         this.files = [file]
@@ -216,15 +216,15 @@ export class FolderMenu extends PopupMenu implements HoverParent {
                         this.onEscape();      // when we close
                         if (leaf.view instanceof MarkdownView) {
                             // Switch to edit mode -- keyboard's not much good without it!
-                            leaf.setViewState({
+                            void leaf.setViewState({
                                 type: leaf.view.getViewType(),
                                 state: { file: file.path, mode: "source"}
-                            }).then(() => this.app.workspace.setActiveLeaf(leaf, false, true));
+                            }).then(() => this.app.workspace.setActiveLeaf(leaf, {focus: true}));
                         } else {
                             // Something like Kanban or Excalidraw, might not support focus flag,
                             // so make sure the current pane doesn't hang onto it
                             (this.dom.ownerDocument.activeElement as HTMLElement)?.blur();
-                            this.app.workspace.setActiveLeaf(leaf, false, true);
+                            this.app.workspace.setActiveLeaf(leaf, {focus: true});
                         }
                     }
                     return true;  // only target the first leaf, whether it matches or not
@@ -242,13 +242,11 @@ export class FolderMenu extends PopupMenu implements HoverParent {
         }
         if (folders.length) {
             if (folderNote) this.addSeparator();
-            // eslint-disable-next-line @typescript-eslint/unbound-method
-            folders.map(this.addFile, this);
+            folders.map(this["addFile"], this);
         }
         if (files.length) {
             if (folders.length || folderNote) this.addSeparator();
-            // eslint-disable-next-line @typescript-eslint/unbound-method
-            files.map(this.addFile, this);
+            files.map(this["addFile"], this);
         }
         this.select(selectedFile ? this.itemForPath(selectedFile.path) : 0);
     }
@@ -486,7 +484,7 @@ export class FolderMenu extends PopupMenu implements HoverParent {
 
         if (file instanceof TFile) {
             if (this.app.viewRegistry.isExtensionRegistered(file.extension)) {
-                this.app.workspace.openLinkText(file.path, "", (event && Keymap.isModEvent(event)) || false);
+                void this.app.workspace.openLinkText(file.path, "", (event && Keymap.isModEvent(event)) || false);
                 // Close the entire menu tree
                 this.rootMenu().hide();
                 event?.stopPropagation();

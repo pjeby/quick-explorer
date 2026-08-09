@@ -1,6 +1,6 @@
 import {MenuItem, Plugin, TFolder} from "./obsidian.ts";
 import {app, use, command, addCommands, isLeafAttached, StyleSettings, o} from "@ophidian/core";
-import {Explorer, hoverSource} from "./Explorer.tsx";
+import {Explorer, getActiveLeaf, hoverSource} from "./Explorer.tsx";
 
 import "./redom-jsx";
 import "./styles.scss"
@@ -25,8 +25,7 @@ export default class QE extends Plugin {
     explorers = this.use(Explorer).watch();
     ss = this.use(StyleSettings);
 
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    updateCurrent(leaf = this.app.workspace.activeLeaf, file = this.app.workspace.getActiveFile()) {
+    updateCurrent(leaf = getActiveLeaf(this.app), file = this.app.workspace.getActiveFile()) {
         if (isLeafAttached(leaf)) this.explorers.forLeaf(leaf).update(file);
     }
 
@@ -46,8 +45,7 @@ export default class QE extends Plugin {
         this.registerEvent(this.app.workspace.on("file-menu", (menu, file) => {
             let item: MenuItem
             if (!(menu instanceof ContextMenu)) menu.addItem(i => {
-                // eslint-disable-next-line obsidianmd/ui/sentence-case
-                i.setIcon("folder").setTitle("Show in Quick Explorer").onClick(e => { this.explorers.forDom(item.dom)?.browseFile(file); });
+                i.setIcon("folder").setTitle(`Show in ${"Quick Explorer"}`).onClick(e => { this.explorers.forDom(item.dom)?.browseFile(file); });
                 item = i;
                 item.setSection?.("system")
             })
@@ -63,7 +61,7 @@ export default class QE extends Plugin {
             }
         }));
 
-        Object.defineProperty(TFolder.prototype, "basename", {get(){ return this.name; }, configurable: true})
+        Object.defineProperty(TFolder.prototype, "basename", {get(this: TFolder){ return this.name; }, configurable: true})
     }
 
     [command("go-next",  "Go to next file in folder")]     () { return this.goFile( 1, true); }
@@ -75,7 +73,7 @@ export default class QE extends Plugin {
         return () => {
             const curFile = app.workspace.getActiveFile();
             const goFile = curFile && navigateFile(curFile, dir, relative);
-            if (goFile && goFile !== curFile) app.workspace.getLeaf().openFile(goFile);
+            if (goFile && goFile !== curFile) void app.workspace.getLeaf().openFile(goFile);
         }
     }
 
@@ -83,11 +81,10 @@ export default class QE extends Plugin {
         this.app.workspace.unregisterHoverLinkSource(hoverSource);
     }
 
-    async browseAfterModal(fileOrFolder: o.TAbstractFile, openDialog: () => Promise<unknown>) {
+    browseAfterModal(fileOrFolder: o.TAbstractFile, openDialog: () => Promise<unknown>) {
         // Trap closing of the rename dialog so we can explore the folder afterwards
         let opened = false;
-        // eslint-disable-next-line @typescript-eslint/no-this-alias
-        const self = this;
+        const self = (() => this)()
         const remove = around(o.Modal.prototype, {
             open(old) { return function() { opened = true; return old.call(this); } },
             close(old) {
@@ -98,6 +95,8 @@ export default class QE extends Plugin {
                 }
             }
         })
-        try { await openDialog(); } finally { void (opened || remove()); }
+        void (async () => {
+            try { await openDialog(); } finally { void (opened || remove()); }
+        })()
     }
 }

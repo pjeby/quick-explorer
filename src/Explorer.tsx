@@ -104,10 +104,8 @@ export class Explorer extends PerWindowComponent {
             if (file) this.update(file);
         }
 
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        this.registerEvent(this.app.vault.on("rename", this.onFileChange, this));
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        this.registerEvent(this.app.vault.on("delete", this.onFileDelete, this));
+        this.registerEvent(this.app.vault.on("rename", this["onFileChange"], this));
+        this.registerEvent(this.app.vault.on("delete", this["onFileDelete"], this));
 
         this.el.on("contextmenu", ".explorable", (event, target) => {
             const { filePath } = target.dataset;
@@ -186,8 +184,7 @@ export class Explorer extends PerWindowComponent {
     }
 
     isCurrent() {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return this === this.use(Explorer).forLeaf(app.workspace.activeLeaf);
+        return this === this.use(Explorer).forLeaf(getActiveLeaf(app));
     }
 
     update(file?: TAbstractFile) {
@@ -200,6 +197,10 @@ export class Explorer extends PerWindowComponent {
         this.list.update(parts);
     }
 
+}
+
+export function getActiveLeaf(app: App) {
+    return app.workspace.getActiveViewOfType(View)?.leaf
 }
 
 export class Breadcrumb {
