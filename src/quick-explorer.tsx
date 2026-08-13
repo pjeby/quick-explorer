@@ -7,6 +7,7 @@ import "./styles.scss"
 import { navigateFile } from "./file-info.ts";
 import { ContextMenu } from "./ContextMenu.ts";
 import { around } from "monkey-around";
+import { DEFAULT_SETTINGS, normalizeSettings, QESettingTab, QESettings } from "./settings.ts";
 
 declare module "obsidian" {
     interface Workspace {
@@ -24,12 +25,17 @@ export default class QE extends Plugin {
     use = use.plugin(this);
     explorers = this.use(Explorer).watch();
     ss = this.use(StyleSettings);
+    settings: QESettings = {...DEFAULT_SETTINGS};
+    autoPreview = DEFAULT_SETTINGS.autoPreviewByDefault;
 
     updateCurrent(leaf = getActiveLeaf(this.app), file = this.app.workspace.getActiveFile()) {
         if (isLeafAttached(leaf)) this.explorers.forLeaf(leaf).update(file);
     }
 
-    onload() {
+    async onload() {
+        await this.loadSettings();
+        this.addSettingTab(new QESettingTab(this.app, this));
+
         this.app.workspace.registerHoverLinkSource(hoverSource, {
             display: 'Quick Explorer', defaultMod: true
         });
@@ -75,6 +81,22 @@ export default class QE extends Plugin {
             const goFile = curFile && navigateFile(curFile, dir, relative);
             if (goFile && goFile !== curFile) void app.workspace.getLeaf().openFile(goFile);
         }
+    }
+
+    async loadSettings() {
+        this.settings = normalizeSettings(await this.loadData());
+        this.autoPreview = this.settings.autoPreviewByDefault;
+    }
+
+    async setAutoPreviewDefault(value: boolean) {
+        this.settings.autoPreviewByDefault = value;
+        this.autoPreview = value;
+        await this.saveData(this.settings);
+    }
+
+    async setKeyboardModifierPreview(value: boolean) {
+        this.settings.keyboardModifierPreview = value;
+        await this.saveData(this.settings);
     }
 
     onunload() {

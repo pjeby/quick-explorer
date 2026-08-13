@@ -40,22 +40,28 @@ declare module "obsidian" {
 interface HoverEditor extends HoverPopover {
     rootSplit: WorkspaceSplit;
     togglePin(pinned?: boolean): void;
+    setIsFocused?(focused: boolean): void;
 }
-
-
-// Global auto preview mode
-let autoPreview = true
 
 export class FolderMenu extends PopupMenu implements HoverParent {
 
     parentFolder: TFolder = this.parent instanceof FolderMenu ? this.parent.folder : null;
+
+    get autoPreview() { return the(QE).autoPreview; }
+    set autoPreview(value: boolean) { the(QE).autoPreview = value; }
+    get keyboardModifierPreview() { return the(QE).settings.keyboardModifierPreview; }
+    get managedPreview() { return this.autoPreview || this.keyboardPreviewActive; }
+
+    keyboardPreviewActive = false;
 
     constructor(public parent: MenuParent, public folder: TFolder, public selectedFile?: TAbstractFile, public crumb?: Breadcrumb) {
         super(parent);
         this.dom.setAttr("role", "listbox");
         this.dom.setAttr("aria-label", folder.path || "/");
         this.loadFiles(folder, selectedFile);
-        this.scope.register([],        "Tab",   this.togglePreviewMode.bind(this));
+        this.scope.register([],        "Tab",       this.toggleAutoPreview.bind(this));
+        this.scope.register(["Mod"],   "ArrowUp",   this.onArrowUp.bind(this));
+        this.scope.register(["Mod"],   "ArrowDown", this.onArrowDown.bind(this));
         this.scope.register(["Mod"],   "Enter", this.onEnter.bind(this));
         this.scope.register(["Alt"],   "Enter", this.onKeyboardContextMenu.bind(this));
         this.scope.register(null,      "Enter", this.onEnter.bind(this));
@@ -80,8 +86,18 @@ export class FolderMenu extends PopupMenu implements HoverParent {
             startDrag(this.app, target.dataset.filePath, event);
         });
 
+        const win = windowForDom(dom);
+        win.addEventListener("keydown", this.onPreviewKeyDown, true);
+        win.addEventListener("keyup", this.onPreviewKeyUp, true);
+        win.addEventListener("blur", this.onPreviewWindowBlur);
+        this.register(() => {
+            win.removeEventListener("keydown", this.onPreviewKeyDown, true);
+            win.removeEventListener("keyup", this.onPreviewKeyUp, true);
+            win.removeEventListener("blur", this.onPreviewWindowBlur);
+        });
+
         // When we unload, reactivate parent menu's hover, if needed
-        this.register(() => { if (autoPreview && this.parent instanceof FolderMenu) this.parent.showPopover(); })
+        this.register(() => { if (this.autoPreview && this.parent instanceof FolderMenu) this.parent.showPopover(); })
 
 
 
@@ -138,7 +154,11 @@ export class FolderMenu extends PopupMenu implements HoverParent {
                 }
             }
         } else {
-            if (!autoPreview) { autoPreview = true; this.showPopover(); }
+            if (!this.autoPreview) {
+                this.stopKeyboardPreview();
+                this.autoPreview = true;
+                this.showPopover();
+            }
             // No preview, just go to next or previous item
             else if (direction > 0) this.onArrowDown(event); else this.onArrowUp(event);
         }
@@ -278,10 +298,35 @@ export class FolderMenu extends PopupMenu implements HoverParent {
         return "option";
     }
 
-    togglePreviewMode() {
-        autoPreview = !autoPreview
-        if (autoPreview) this.showPopover(); else this.hidePopover();
+    toggleAutoPreview() {
+        this.stopKeyboardPreview();
+        this.autoPreview = !this.autoPreview
+        if (this.autoPreview) this.showPopover(); else this.hidePopover();
         return false;
+    }
+
+    activateKeyboardPreview(event: KeyboardEvent) {
+        if (!this.keyboardModifierPreview || this.autoPreview || !Keymap.isModifier(event, "Mod")) return;
+        if (this.keyboardPreviewActive) return;
+        this.keyboardPreviewActive = true;
+        this.showKeyboardPopover();
+    }
+
+    onPreviewKeyDown = (event: KeyboardEvent) => {
+        if (!this.canShowPopover() || !this.dom.contains(this.dom.ownerDocument.activeElement)) return;
+        this.activateKeyboardPreview(event);
+    }
+
+    onPreviewKeyUp = (event: KeyboardEvent) => {
+        if (this.keyboardPreviewActive && !Keymap.isModifier(event, "Mod")) this.stopKeyboardPreview();
+    }
+
+    onPreviewWindowBlur = () => this.stopKeyboardPreview();
+
+    stopKeyboardPreview() {
+        if (!this.keyboardPreviewActive) return;
+        this.hidePopover();
+        this.keyboardPreviewActive = false;
     }
 
     refreshFiles = debounce(() => this.loadFiles(this.folder, this.currentFile()), 100, true);
@@ -320,7 +365,7 @@ export class FolderMenu extends PopupMenu implements HoverParent {
         this.registerEvent(this.app.vault.on("delete", file => this.removeItemForPath(file.path)));
 
         // Activate preview immediately if applicable
-        if (autoPreview && this.selected != -1) this.showPopover();
+        if (this.autoPreview && this.selected != -1) this.showPopover();
     }
 
     removeItemForPath(path: string) {
@@ -340,13 +385,14 @@ export class FolderMenu extends PopupMenu implements HoverParent {
     }
 
     hide() {
+        this.stopKeyboardPreview();
         this.hidePopover();
         return super.hide();
     }
 
     setChildMenu(menu: PopupMenu) {
         super.setChildMenu(menu);
-        if (autoPreview && this.canShowPopover()) this.showPopover();
+        if (this.autoPreview && this.canShowPopover()) this.showPopover();
     }
 
     select(idx: number, scroll = true) {
@@ -354,7 +400,8 @@ export class FolderMenu extends PopupMenu implements HoverParent {
         super.select(idx, scroll);
         if (old !== this.selected) {
             // selected item changed; trigger new popover or hide the old one
-            if (autoPreview) this.showPopover(); else this.hidePopover();
+            if (this.autoPreview) this.showPopover(); else this.hidePopover();
+            if (this.keyboardPreviewActive) this.showKeyboardPopover();
         }
     }
 
@@ -369,20 +416,32 @@ export class FolderMenu extends PopupMenu implements HoverParent {
 
     showPopover = debounce(() => {
         this.hidePopover();
-        if (!autoPreview) return;
-        const preview = this.app.internalPlugins.plugins["page-preview"]
-        if (preview?.enabled) this.maybeHover(this.currentItem()?.dom, file => (
-            preview.enabled && preview?.instance?.onLinkHover(
-                this, windowForDom(this.dom).document.body, file.path, ""
-            )
-        ))
+        if (!this.autoPreview) return;
+        this.showSelectedPopover();
     }, 50, true)
+
+    showKeyboardPopover = debounce(() => {
+        if (!this.keyboardPreviewActive || !this.keyboardModifierPreview || this.autoPreview) return;
+        this.hidePopover();
+        const targetEl = this.currentItem()?.dom;
+        if (targetEl) this.showSelectedPopover(targetEl);
+    }, 50, true)
+
+    showSelectedPopover(targetEl: HTMLElement = windowForDom(this.dom).document.body) {
+        const preview = this.app.internalPlugins.plugins["page-preview"]
+        if (!preview?.enabled) return;
+        const itemEl = this.currentItem()?.dom;
+        if (!itemEl) return;
+        this.maybeHover(itemEl, file => {
+            if (preview.enabled) preview.instance?.onLinkHover(this, targetEl, file.path, "");
+        });
+    }
 
 
     onItemHover(item: SearchableMenuItem, event: MouseEvent, targetEl: HTMLDivElement) {
         super.onItemHover(item, event, targetEl);
         if (!targetEl.matches(".menu-item[data-file-path]")) return;
-        if (!autoPreview) this.maybeHover(targetEl, file => this.app.workspace.trigger('hover-link', {
+        if (!this.keyboardPreviewActive && !this.autoPreview) this.maybeHover(targetEl, file => this.app.workspace.trigger('hover-link', {
             event, source: hoverSource, hoverParent: this, targetEl, linktext: file.path
         }));
     }
@@ -405,8 +464,9 @@ export class FolderMenu extends PopupMenu implements HoverParent {
         if (popover === old) return;
         if (old && popover !== old) {
             this._popover = null;
+            if (this.keyboardPreviewActive) old.setIsFocused?.(false);
             old.onHover = old.onTarget = false;   // Force unpinned Hover Editors to close
-            if (!old.isPinned || autoPreview) old.hide();
+            if (!old.isPinned || this.managedPreview) old.hide();
         }
         if (popover && !this.canShowPopover()) {
             popover.onHover = false;   // Force unpinned Hover Editors to close
@@ -422,10 +482,11 @@ export class FolderMenu extends PopupMenu implements HoverParent {
             targetEl.removeEventListener("mouseout", popover.onMouseOut);
         }
 
-        if (autoPreview && popover && this.currentItem()) {
+        if (this.managedPreview && popover && this.currentItem()) {
             // Override auto-pinning if we are generating auto-previews, to avoid
             // generating huge numbers of popovers
             popover.togglePin?.(false);
+            if (this.keyboardPreviewActive) popover.setIsFocused?.(true);
 
             // Ditch event handlers (Workaround for https://github.com/nothingislost/obsidian-hover-editor/issues/125)
             void Promise.resolve().then(() => popover.abortController?.unload?.());
