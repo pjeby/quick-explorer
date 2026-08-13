@@ -4,7 +4,7 @@ import { PopupMenu, MenuParent, SearchableMenuItem } from "./menus.ts";
 import { ContextMenu } from "./ContextMenu.ts";
 import { around } from "monkey-around";
 import { onElement, windowForDom, the } from "@ophidian/core";
-import { fileIcon, folderNoteFor, previewIcons, sortedFiles } from "./file-info.ts";
+import { displayName, fileIcon, folderNoteFor, previewIcons, sortedFiles } from "./file-info.ts";
 import QE from "./quick-explorer.tsx";
 import * as o from "obsidian"
 
@@ -49,6 +49,7 @@ let autoPreview = true
 export class FolderMenu extends PopupMenu implements HoverParent {
 
     parentFolder: TFolder = this.parent instanceof FolderMenu ? this.parent.folder : null;
+    get noteTitleProperty() { return the(QE).settings.noteTitleProperty; }
 
     constructor(public parent: MenuParent, public folder: TFolder, public selectedFile?: TAbstractFile, public crumb?: Breadcrumb) {
         super(parent);
@@ -236,7 +237,7 @@ export class FolderMenu extends PopupMenu implements HoverParent {
 
     loadFiles(folder: TFolder, selectedFile?: TAbstractFile) {
         this.items.forEach(i => i.dom.detach()); this.items = [];
-        const {folderNote, folders, files} = sortedFiles(folder);
+        const {folderNote, folders, files} = sortedFiles(folder, undefined, this.noteTitleProperty);
         if (folderNote) {
             this.addFile(folderNote);
         }
@@ -258,13 +259,12 @@ export class FolderMenu extends PopupMenu implements HoverParent {
     addFile(file: TFile|TFolder) {
         const icon = fileIcon(file);
         this.addItem(i => {
-            i.setTitle(file.name);
+            i.setTitle(displayName(file, this.noteTitleProperty));
             i.dom.dataset.filePath = file.path;
             i.dom.setAttr("draggable", "true");
             i.dom.addClass (file instanceof TFolder ? "is-qe-folder" : "is-qe-file");
             if (icon) i.setIcon(icon);
             if (file instanceof TFile) {
-                i.setTitle(file.basename);
                 if (file.extension !== "md") i.dom.createDiv({text: file.extension, cls: ["nav-file-tag","qe-extension"]});
             } else if (file !== this.folder.parent) {
                 const count = this.fileCount(file);
@@ -318,6 +318,9 @@ export class FolderMenu extends PopupMenu implements HoverParent {
             }
         }));
         this.registerEvent(this.app.vault.on("delete", file => this.removeItemForPath(file.path)));
+        this.registerEvent(this.app.metadataCache.on("changed", file => {
+            if (this.noteTitleProperty && this.folder === file.parent) this.refreshFiles();
+        }));
 
         // Activate preview immediately if applicable
         if (autoPreview && this.selected != -1) this.showPopover();

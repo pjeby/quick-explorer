@@ -54,6 +54,8 @@ And an extensive set of keyboard operations is available as well:
 
 Like the built-in file explorer, Quick Explorer will either show all files, or only the ones supported by Obsidian, depending upon whether the "Detect all file extensions" setting is enabled in the "Files and Links" options tab.
 
+The **Note title property** setting can use a frontmatter property (for example, `title`) as the display name for Markdown notes in Quick Explorer lists. A note falls back to its file name when the configured property is missing or empty. Notes are sorted and searchable by the displayed name.
+
 Quick explorer also includes six hotkeyable commands:
 
 * **Browse vault**, which opens the dropdown for the vault root, and
@@ -79,8 +81,7 @@ Another compatibility issue: some themes attempt to hide or downplay title bar i
 
 ### Current Limitations
 
-* Files are always sorted in ascending name order (using the same collation rules as the file-explorer view)
+* Files are always sorted in ascending display-name order (using the same collation rules as the file-explorer view)
 * You can drag things *out of* the dropdowns, but you can't drop anything *into* them
 * There is no way to configure sorting or grouping of files
 * Only "inside same"-style folder notes are supported
-

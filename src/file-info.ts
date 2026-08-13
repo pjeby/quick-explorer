@@ -1,4 +1,4 @@
-import { TAbstractFile, TFile, TFolder } from "./obsidian.ts";
+import { parseFrontMatterEntry, TAbstractFile, TFile, TFolder } from "./obsidian.ts";
 import { app } from "@ophidian/core";
 
 export const previewIcons: Record<string, string> = {
@@ -32,27 +32,55 @@ export function folderNotePath(folder: TFolder) {
 
 const alphaSort = new Intl.Collator(undefined, {usage: "sort", sensitivity: "base", numeric: true})["compare"];
 
-export function sortedFiles(folder: TFolder, allFiles: boolean = app.vault.getConfig("showUnsupportedFiles")) {
+export function displayName(file: TFile|TFolder, noteTitleProperty = "") {
+    if (file instanceof TFolder) return file.name;
+
+    const fallback = file.basename;
+    if (file.extension !== "md" || !noteTitleProperty) return fallback;
+
+    const frontmatter = app.metadataCache.getFileCache(file)?.frontmatter;
+    const value = parseFrontMatterEntry(frontmatter, noteTitleProperty);
+    return propertyDisplayName(value) ?? fallback;
+}
+
+function propertyDisplayName(value: unknown): string | undefined {
+    if (typeof value === "string") return value.trim() || undefined;
+    if (typeof value === "number" || typeof value === "boolean") return String(value);
+    if (Array.isArray(value)) {
+        const title = value
+            .filter(item => typeof item === "string" || typeof item === "number" || typeof item === "boolean")
+            .map(String)
+            .join(", ")
+            .trim();
+        return title || undefined;
+    }
+}
+
+export function sortedFiles(
+    folder: TFolder,
+    allFiles: boolean = app.vault.getConfig("showUnsupportedFiles"),
+    noteTitleProperty = "",
+) {
     const children = folder.children as Array<TFile|TFolder>;
     const folderNote = folderNoteFor(folder);
     const items = children.slice().sort((a: TAbstractFile, b: TAbstractFile) => alphaSort(a.name, b.name))
     const folders = items.filter(f => f instanceof TFolder) as TFolder[];
     const files   = items.filter(f => f instanceof TFile && f !== folderNote && (allFiles || fileIcon(f))) as TFile[];
     folders.sort((a, b) => alphaSort(a.name, b.name));
-    files.sort((a, b) => alphaSort(a.basename, b.basename));
+    files.sort((a, b) => alphaSort(displayName(a, noteTitleProperty), displayName(b, noteTitleProperty)));
     return {folderNote, folders, files};
 }
 
-function fileIndex(folder: TFolder, allFiles?: boolean): TAbstractFile[] {
-    const {folderNote, folders, files} = sortedFiles(folder, false);
+function fileIndex(folder: TFolder, noteTitleProperty = ""): TAbstractFile[] {
+    const {folderNote, folders, files} = sortedFiles(folder, false, noteTitleProperty);
     return ((folderNote ? [folderNote] : []) as TAbstractFile[]).concat(folders, files);
 }
 
-export function navigateFile(file: TAbstractFile, direction: number, relative: boolean): TFile {
+export function navigateFile(file: TAbstractFile, direction: number, relative: boolean, noteTitleProperty = ""): TFile {
     const seen = new Set<TAbstractFile>();
     while (file?.parent && !seen.has(file)) {
         seen.add(file);
-        let all = fileIndex(file.parent, false);
+        let all = fileIndex(file.parent, noteTitleProperty);
         let pos = all.indexOf(file);
         if (pos === -1) return; // XXX should never happen!
         if (relative) {
@@ -65,7 +93,7 @@ export function navigateFile(file: TAbstractFile, direction: number, relative: b
             file = all[pos];
             if (file instanceof TFile) return file;
             else if (file instanceof TFolder) {
-                all = fileIndex(file, false);
+                all = fileIndex(file, noteTitleProperty);
                 pos = direction > 0 ? 0 : all.length - 1;
             }
             else pos += direction; // XXX should never get here
