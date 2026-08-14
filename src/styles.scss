@@ -19,6 +19,10 @@ settings:
         title: Hide Quick Explorer
         description: Hide quick explorer (and use tab titlebar breadcrumbs on 0.16)
         type: class-toggle
+    -   id: qe-hide-preview-toggle
+        title: Hide Quick Explorer Preview Status/Toggle
+        description: Hide Quick Explorer's preview status icon/toggle button
+        type: class-toggle
 */
 
 .titlebar-button-container.mod-left {
@@ -47,8 +51,12 @@ body.obsidian-themepocalypse:not(.qe-hide-breadcrumbs) {
 }
 
 // Hide QE if requested
-body.qe-hide-breadcrumbs #quick-explorer { display: none; }
+body.qe-hide-breadcrumbs {
+    #quick-explorer-preview-status, #quick-explorer { display: none; }
+}
 
+// Hide Preview toggle if requested
+body.qe-hide-preview-toggle #quick-explorer-preview-status { display: none; }
 
 // Put QE on status bar, far to the left, if native or hidden frame
 body.is-frameless.is-hidden-frameless:not(.qe-hide-breadcrumbs) .status-bar,

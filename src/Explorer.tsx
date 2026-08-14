@@ -1,7 +1,7 @@
-import { App, FileView, requireApiVersion, TAbstractFile, TConcreteFile, TFile, TFolder, View, WorkspaceLeaf } from "./obsidian.ts";
+import { App, Events, FileView, requireApiVersion, setIcon, setTooltip, TAbstractFile, TConcreteFile, TFile, TFolder, View, WorkspaceLeaf } from "./obsidian.ts";
 import { list, el, mount, unmount } from "redom";
 import { ContextMenu } from "./ContextMenu.ts";
-import { FolderMenu } from "./FolderMenu.ts";
+import { AUTO_PREVIEW, autoPreview, FolderMenu, setAutoPreview } from "./FolderMenu.ts";
 import { app, onElement, PerWindowComponent, statusBarItem } from "@ophidian/core";
 
 export const hoverSource = "quick-explorer:folder-menu";
@@ -45,7 +45,8 @@ export class Explorer extends PerWindowComponent {
     lastPath: string = null;
     lastMenu: FolderMenu;
 
-    el: HTMLElement = <div id="quick-explorer" />;
+    previewButton: HTMLSpanElement = <span id="quick-explorer-preview-status" />
+    el: HTMLElement = <div id="quick-explorer"></div>;
     list = list(this.el, Explorable);
     isOpen = 0
     app = app;
@@ -95,6 +96,13 @@ export class Explorer extends PerWindowComponent {
 
         this.register(() => unmount(buttonContainer, this));
         mount(buttonContainer, this);
+
+        buttonContainer.insertBefore(this.previewButton, this.el);
+        this.previewButton.addEventListener("click", () => setAutoPreview(!autoPreview()))
+        this.registerEvent(
+            (app.workspace as Events).on(AUTO_PREVIEW, this["updatePreview"], this)
+        )
+        this.updatePreview()
 
         if (this.isCurrent()) {
             this.update(this.app.workspace.getActiveFile());
@@ -197,6 +205,12 @@ export class Explorer extends PerWindowComponent {
         this.list.update(parts);
     }
 
+    updatePreview(enabled = autoPreview()) {
+        setIcon(this.previewButton, enabled ? "eye" : "eye-off")
+        setTooltip(
+            this.previewButton, `Quick Explorer Previews: ${enabled ? "ON" : "OFF"}`, {placement: "top"}
+        )
+    }
 }
 
 export function getActiveLeaf(app: App) {

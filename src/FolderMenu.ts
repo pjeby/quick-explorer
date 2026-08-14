@@ -3,14 +3,19 @@ import { Breadcrumb, hoverSource, startDrag } from "./Explorer.tsx";
 import { PopupMenu, MenuParent, SearchableMenuItem } from "./menus.ts";
 import { ContextMenu } from "./ContextMenu.ts";
 import { around } from "monkey-around";
-import { onElement, windowForDom, the } from "@ophidian/core";
+import { onElement, windowForDom, the, app } from "@ophidian/core";
 import { fileIcon, folderNoteFor, previewIcons, sortedFiles } from "./file-info.ts";
 import QE from "./quick-explorer.tsx";
 import * as o from "obsidian"
+type AnyFunction = (this: unknown, ...args: unknown[]) => unknown
 
 declare module "obsidian" {
     interface HoverPopover {
         position(pos?: {x: number, y: number}): void
+        staticPos: {x: number, y: number}
+        waitTime: number
+        parent: o.HoverParent
+        show(): void
         hide(): void
         onHover: boolean
         onTarget: boolean
@@ -44,7 +49,20 @@ interface HoverEditor extends HoverPopover {
 
 
 // Global auto preview mode
-let autoPreview = true
+let shouldPreview: boolean = undefined
+export const AUTO_PREVIEW = "quick-explorer:auto-preview"
+type bool = {value: boolean}
+
+export function autoPreview() {
+    return shouldPreview ?? (
+        shouldPreview = (app.loadLocalStorage(AUTO_PREVIEW) as bool ?? {value: true}).value
+    )
+}
+
+export function setAutoPreview(preview: boolean) {
+    app.saveLocalStorage(AUTO_PREVIEW, {value: shouldPreview = preview})
+    app.workspace.trigger(AUTO_PREVIEW, shouldPreview)
+}
 
 export class FolderMenu extends PopupMenu implements HoverParent {
 
@@ -81,7 +99,7 @@ export class FolderMenu extends PopupMenu implements HoverParent {
         });
 
         // When we unload, reactivate parent menu's hover, if needed
-        this.register(() => { if (autoPreview && this.parent instanceof FolderMenu) this.parent.showPopover(); })
+        this.register(() => { if (autoPreview() && this.parent instanceof FolderMenu) this.parent.showPopover(); })
 
 
 
@@ -138,7 +156,7 @@ export class FolderMenu extends PopupMenu implements HoverParent {
                 }
             }
         } else {
-            if (!autoPreview) { autoPreview = true; this.showPopover(); }
+            if (!autoPreview()) { setAutoPreview(true); this.showPopover(); }
             // No preview, just go to next or previous item
             else if (direction > 0) this.onArrowDown(event); else this.onArrowUp(event);
         }
@@ -279,8 +297,11 @@ export class FolderMenu extends PopupMenu implements HoverParent {
     }
 
     togglePreviewMode() {
-        autoPreview = !autoPreview
-        if (autoPreview) this.showPopover(); else this.hidePopover();
+        setAutoPreview(!autoPreview())
+        if (autoPreview()) this.showPopover(); else {
+            this.hoverPopover?.togglePin?.(false)  // Close even if pinned
+            this.hidePopover()
+        }
         return false;
     }
 
@@ -320,7 +341,7 @@ export class FolderMenu extends PopupMenu implements HoverParent {
         this.registerEvent(this.app.vault.on("delete", file => this.removeItemForPath(file.path)));
 
         // Activate preview immediately if applicable
-        if (autoPreview && this.selected != -1) this.showPopover();
+        if (autoPreview() && this.selected != -1) this.showPopover();
     }
 
     removeItemForPath(path: string) {
@@ -346,7 +367,7 @@ export class FolderMenu extends PopupMenu implements HoverParent {
 
     setChildMenu(menu: PopupMenu) {
         super.setChildMenu(menu);
-        if (autoPreview && this.canShowPopover()) this.showPopover();
+        if (autoPreview() && this.canShowPopover()) this.showPopover();
     }
 
     select(idx: number, scroll = true) {
@@ -354,7 +375,7 @@ export class FolderMenu extends PopupMenu implements HoverParent {
         super.select(idx, scroll);
         if (old !== this.selected) {
             // selected item changed; trigger new popover or hide the old one
-            if (autoPreview) this.showPopover(); else this.hidePopover();
+            if (autoPreview()) this.showPopover(); else this.hidePopover();
         }
     }
 
@@ -369,20 +390,58 @@ export class FolderMenu extends PopupMenu implements HoverParent {
 
     showPopover = debounce(() => {
         this.hidePopover();
-        if (!autoPreview) return;
+        if (!autoPreview()) return;
         const preview = this.app.internalPlugins.plugins["page-preview"]
-        if (preview?.enabled) this.maybeHover(this.currentItem()?.dom, file => (
-            preview.enabled && preview?.instance?.onLinkHover(
-                this, windowForDom(this.dom).document.body, file.path, ""
-            )
-        ))
+        if (preview?.enabled) this.maybeHover(this.currentItem()?.dom, file => {
+            if (preview.enabled) {
+                const self = (() => this)()
+                let boundShow: () => void
+                // Watch HoverPopover.show.bind to capture the instance - Obsidian native preview doesn't set
+                // .hoverPopover soon enough for our use otherwise.
+                const stopWatchingBind = around (HoverPopover.prototype.show as {bind: AnyFunction["bind"]}, {bind() {
+                    return function(this: AnyFunction, thisArg: HoverEditor, ...args: unknown[]) {
+                        const bound = (...a: unknown[]) => this.call(thisArg, ...args, ...a)
+                        // Check if this is a popover tied to this menu
+                        if (thisArg instanceof HoverPopover && thisArg.parent == self) {
+                            // Trick obsidian's .create() into showing after timeout 0; this also shortens
+                            // transition-out time, but that's fine for our purposes since we force-hide anyway.
+                            thisArg.waitTime = 100
+                            boundShow = bound
+                            stopWatchingBind()
+                        }
+                        return bound
+                    }
+                }})
+                // Watch setTimeout for the call to .show(), to run it immediately.  (We can't just
+                // do it from .bind() because it will otherwise run *twice* as Obsidian calls
+                // setTimeout on it, and we can't return a dummy bound version because it saves it
+                // forever as a property on the popover.)
+                const stopWatchingTimeout = around(activeWindow, {setTimeout(next) {
+                    return function(handler: () => void, timeout?: number, ...args: unknown[]) {
+                        if (boundShow === handler) {
+                            stopWatchingTimeout()
+                            timeout = 0
+                        }
+                        return next.call(this, handler, timeout, ...args)
+                    }
+                },})
+                try {
+                    preview?.instance?.onLinkHover(
+                       this, windowForDom(this.dom).document.body, file.path, "", 0
+                    )
+                } finally {
+                    stopWatchingBind()
+                    stopWatchingTimeout()
+                }
+            }
+        })
     }, 50, true)
 
 
     onItemHover(item: SearchableMenuItem, event: MouseEvent, targetEl: HTMLDivElement) {
         super.onItemHover(item, event, targetEl);
         if (!targetEl.matches(".menu-item[data-file-path]")) return;
-        if (!autoPreview) this.maybeHover(targetEl, file => this.app.workspace.trigger('hover-link', {
+        if (!autoPreview()) this.maybeHover(targetEl, file => this.app.workspace.trigger('hover-link', {
             event, source: hoverSource, hoverParent: this, targetEl, linktext: file.path
         }));
     }
@@ -406,7 +465,7 @@ export class FolderMenu extends PopupMenu implements HoverParent {
         if (old && popover !== old) {
             this._popover = null;
             old.onHover = old.onTarget = false;   // Force unpinned Hover Editors to close
-            if (!old.isPinned || autoPreview) old.hide();
+            if (!old.isPinned || autoPreview()) old.hide();
         }
         if (popover && !this.canShowPopover()) {
             popover.onHover = false;   // Force unpinned Hover Editors to close
@@ -422,7 +481,7 @@ export class FolderMenu extends PopupMenu implements HoverParent {
             targetEl.removeEventListener("mouseout", popover.onMouseOut);
         }
 
-        if (autoPreview && popover && this.currentItem()) {
+        if (autoPreview() && popover && this.currentItem()) {
             // Override auto-pinning if we are generating auto-previews, to avoid
             // generating huge numbers of popovers
             popover.togglePin?.(false);
@@ -448,20 +507,21 @@ export class FolderMenu extends PopupMenu implements HoverParent {
                     // Popover hides too much of menu - move it to the left side
                     left = menu.left - hoverEl.offsetWidth;
                 }
-                popover.position({x: left, y: top});
+                popover.staticPos = {x: left, y: top}
+                popover.position(popover.staticPos);    // newer Obsidians use .staticPos rather than an argument
                 hoverEl.style.top = top + "px";
                 hoverEl.style.left = left + "px";
                 // Keep hover editor from closing even if mouse moves away
                 popover.togglePin?.(true);
             }
-            if ("onShowCallback" in popover) {
+            if ("onShowCallback" in popover) { // Hover Editor
                 around(popover, {onShowCallback(old: (this: HoverPopover) => unknown) {
                     return () => {
                         popover.hoverEl.win.requestAnimationFrame(reposition);
                         return old?.call(popover);
                     }
                 }})
-            } else this.dom.win.requestAnimationFrame(reposition);
+            } else reposition()
         }
     }
 
