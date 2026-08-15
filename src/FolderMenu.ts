@@ -398,7 +398,7 @@ export class FolderMenu extends PopupMenu implements HoverParent {
                 let boundShow: () => void
                 // Watch HoverPopover.show.bind to capture the instance - Obsidian native preview doesn't set
                 // .hoverPopover soon enough for our use otherwise.
-                const stopWatchingBind = around (HoverPopover.prototype.show as {bind: AnyFunction["bind"]}, {bind() {
+                const stopWatchingBind = around (HoverPopover.prototype["show"] as {bind: AnyFunction["bind"]}, {bind() {
                     return function(this: AnyFunction, thisArg: HoverEditor, ...args: unknown[]) {
                         const bound = (...a: unknown[]) => this.call(thisArg, ...args, ...a)
                         // Check if this is a popover tied to this menu

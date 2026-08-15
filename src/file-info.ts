@@ -36,7 +36,7 @@ export function sortedFiles(folder: TFolder, allFiles: boolean = app.vault.getCo
     const children = folder.children as Array<TFile|TFolder>;
     const folderNote = folderNoteFor(folder);
     const items = children.slice().sort((a: TAbstractFile, b: TAbstractFile) => alphaSort(a.name, b.name))
-    const folders = items.filter(f => f instanceof TFolder) as TFolder[];
+    const folders = items.filter(f => f instanceof TFolder);
     const files   = items.filter(f => f instanceof TFile && f !== folderNote && (allFiles || fileIcon(f))) as TFile[];
     folders.sort((a, b) => alphaSort(a.name, b.name));
     files.sort((a, b) => alphaSort(a.basename, b.basename));
