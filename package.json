@@ -5,10 +5,10 @@
         "build": "node ophidian.config.mjs production"
     },
     "license": "ISC",
-    "packageManager": "pnpm@7.33.6",
+    "packageManager": "pnpm@9.15.9",
     "devDependencies": {
         "@ophidian/build": "^1.2",
-        "@ophidian/core": "ophidian-lib/core",
+        "@ophidian/core": "ophidian-lib/core#0c9d58b5fd01ce50787af4b013bd4efeb803a427",
         "monkey-around": "^3",
         "obsidian": "1.3.5",
         "redom": "^3.27.1",
