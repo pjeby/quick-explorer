@@ -6,6 +6,8 @@ export const previewIcons: Record<string, string> = {
     image: "image-file",
     audio: "audio-file",
     pdf: "pdf-file",
+    bases: "table",
+    canvas: "layout-template",
 }
 
 export const viewtypeIcons: Record<string, string> = {

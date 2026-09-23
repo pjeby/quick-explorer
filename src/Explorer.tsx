@@ -98,6 +98,7 @@ export class Explorer extends PerWindowComponent {
         mount(buttonContainer, this);
 
         buttonContainer.insertBefore(this.previewButton, this.el);
+        this.register(() => this.previewButton.detach());
         this.previewButton.addEventListener("click", () => setAutoPreview(!autoPreview()))
         this.registerEvent(
             (app.workspace as Events).on(AUTO_PREVIEW, this["updatePreview"], this)
