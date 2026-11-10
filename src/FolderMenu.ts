@@ -254,16 +254,14 @@ export class FolderMenu extends PopupMenu implements HoverParent {
 
     loadFiles(folder: TFolder, selectedFile?: TAbstractFile) {
         this.items.forEach(i => i.dom.detach()); this.items = [];
-        const {folderNote, folders, files} = sortedFiles(folder);
-        if (folderNote) {
-            this.addFile(folderNote);
-        }
+        const {folderNotes, folders, files} = sortedFiles(folder);
+        folderNotes.map(this["addFile"], this)
         if (folders.length) {
-            if (folderNote) this.addSeparator();
+            if (folderNotes.length) this.addSeparator();
             folders.map(this["addFile"], this);
         }
         if (files.length) {
-            if (folders.length || folderNote) this.addSeparator();
+            if (folders.length || folderNotes.length) this.addSeparator();
             files.map(this["addFile"], this);
         }
         this.select(selectedFile ? this.itemForPath(selectedFile.path) : 0);
